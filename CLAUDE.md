@@ -5,8 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 `ccrun` is a Node.js CLI tool that provides a wrapper around the Claude Code API to make interactions more user-friendly by:
-- Supporting direct prompts via the `-p` option
-- Supporting file input for prompts via the `-i` option
+- Supporting direct prompts via the `-i` option
+- Supporting file input for prompts via the `-f` option
 - Providing session continuation with `--continue` and `--resume` flags
 - Supporting tool filtering with `--allowedTools` and `--disallowedTools`
 - Built with TypeScript and uses the official `@anthropic-ai/claude-code` package
@@ -37,28 +37,28 @@ npm run build
 Using the tool:
 ```bash
 # Direct prompt
-ccrun -p "Your prompt here"
+ccrun -i "Your prompt here"
 
 # File input
-ccrun -i path/to/prompt.txt
+ccrun -f path/to/prompt.txt
 
 # Continue previous session
-ccrun --continue -p "Follow up question"
+ccrun --continue -i "Follow up question"
 
 # Resume specific session
-ccrun --resume SESSION_ID -p "Continue from session"
+ccrun --resume SESSION_ID -i "Continue from session"
 
 # With tool filtering
-ccrun -p "prompt" --allowedTools "Read,Write" --disallowedTools "Bash"
+ccrun -i "prompt" --allowedTools "Read,Write" --disallowedTools "Bash"
 
 # Max turns limit
-ccrun -p "prompt" --max-turns 5
+ccrun -i "prompt" --max-turns 5
 ```
 
 ## CLI Options
 
-- `-p, --prompt` - Direct prompt text
-- `-i, --input` - Input file containing prompt
+- `-i, --input` - Direct prompt text
+- `-f, --file` - Input file containing prompt
 - `-c, --continue` - Continue from previous session
 - `--resume SESSION_ID` - Resume specific session
 - `--max-turns NUMBER` - Maximum conversation turns

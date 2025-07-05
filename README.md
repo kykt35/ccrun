@@ -25,19 +25,19 @@ npm run build
 TypeScriptファイルを直接実行する場合：
 
 ```bash
-npm run dev -- -p "こんにちは"
+npm run dev -- -i "こんにちは"
 ```
 
 または、ビルド後のJavaScriptファイルを実行：
 
 ```bash
-npm start -- -p "こんにちは"
+npm start -- -i "こんにちは"
 ```
 
 #### 主なオプション
 
-- `-p, --prompt <prompt>`: 直接プロンプトを指定
-- `-i, --input <file>`: ファイルからプロンプトを読み込む
+- `-i, --input <prompt>`: 直接プロンプトを指定
+- `-f, --file <file>`: ファイルからプロンプトを読み込む
 - `--max-turns <number>`: 最大ターン数を指定
 - `-c, --continue`: セッションを継続
 - `--resume <session-id>`: セッションIDから再開
@@ -61,7 +61,7 @@ npm link
 例：
 
 ```bash
-ccrun -p "こんにちは"
+ccrun -i "こんにちは"
 ```
 
 ---
@@ -74,7 +74,7 @@ ccrun -p "こんにちは"
 {
   "permissions": {
     "allow": ["Read", "Write"],
-    "deny": ["Bash"]
+    "deny": ["Edit"]
   }
 }
 ```

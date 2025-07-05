@@ -20,11 +20,11 @@ function parseArgs(): CLIArgs {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
 
-    if (arg === '-p' || arg === '--prompt') {
+    if (arg === '-i' || arg === '--input') {
       result.prompt = args[++i];
       consumed.add(i - 1);
       consumed.add(i);
-    } else if (arg === '-i' || arg === '--input') {
+    } else if (arg === '-f' || arg === '--file') {
       result.inputFile = args[++i];
       consumed.add(i - 1);
       consumed.add(i);
@@ -50,8 +50,8 @@ function parseArgs(): CLIArgs {
     } else if (arg === '-h' || arg === '--help') {
       console.log('Usage: claude-run [options]');
       console.log('Options:');
-      console.log('  -p, --prompt <prompt>    Prompt to send to Claude');
-      console.log('  -i, --input <file>       Input file to send to Claude');
+      console.log('  -i, --input <prompt>     Prompt to send to Claude');
+      console.log('  -f, --file <file>        Input file to send to Claude');
       console.log('  --max-turns <number>     Maximum number of turns to run');
       console.log('  -c, --continue           Continue from a previous session');
       console.log('  --resume <session-id>    Resume from a previous session');
@@ -61,7 +61,7 @@ function parseArgs(): CLIArgs {
     }
   }
 
-  // -p も -i も指定されていない場合、最初の未消費引数をpromptとして扱う
+  // -i も -f も指定されていない場合、最初の未消費引数をpromptとして扱う
   if (!result.prompt && !result.inputFile) {
     for (let i = 0; i < args.length; i++) {
       if (!consumed.has(i)) {
@@ -88,7 +88,7 @@ function getPrompt(args: CLIArgs): string {
   } else if (args.prompt) {
     return args.prompt;
   } else {
-    console.error('Please provide either -p <prompt> or -i <file>');
+    console.error('Please provide either -i <prompt> or -f <file>');
     process.exit(1);
   }
 }
@@ -213,6 +213,7 @@ async function main() {
 
     // 最後にsession_idを表示
     if (sessionId) {
+      console.log(`Session ID: ${sessionId}`);
       console.log(`Continue with: --continue or --resume ${sessionId}`);
     }
 
