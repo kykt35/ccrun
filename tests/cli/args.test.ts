@@ -1,0 +1,192 @@
+import { ArgumentParser, CLIArgs } from '../../src/cli/args';
+
+describe('ArgumentParser', () => {
+  describe('parseArgs', () => {
+    it('should parse prompt argument with -i flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test prompt']);
+      
+      expect(args.prompt).toBe('test prompt');
+      expect(args.inputFile).toBeUndefined();
+    });
+
+    it('should parse input file argument with -f flag', () => {
+      const args = ArgumentParser.parseArgs(['-f', 'test.txt']);
+      
+      expect(args.inputFile).toBe('test.txt');
+      expect(args.prompt).toBeUndefined();
+    });
+
+    it('should parse max turns argument', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--max-turns', '10']);
+      
+      expect(args.maxTurns).toBe(10);
+    });
+
+    it('should parse continue flag', () => {
+      const args = ArgumentParser.parseArgs(['-c', '-i', 'test']);
+      
+      expect(args.continue).toBe(true);
+    });
+
+    it('should parse resume with session ID', () => {
+      const args = ArgumentParser.parseArgs(['--resume', 'session123', '-i', 'test']);
+      
+      expect(args.sessionId).toBe('session123');
+    });
+
+    it('should parse allowed tools', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--allowedTools', 'Read,Write,Edit']);
+      
+      expect(args.allowedTools).toEqual(['Read', 'Write', 'Edit']);
+    });
+
+    it('should parse disallowed tools', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--disallowedTools', 'Bash,WebFetch']);
+      
+      expect(args.disallowedTools).toEqual(['Bash', 'WebFetch']);
+    });
+
+    it('should parse help flag', () => {
+      const args = ArgumentParser.parseArgs(['-h']);
+      
+      expect(args.help).toBe(true);
+    });
+
+    it('should handle tools with spaces', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--allowedTools', 'Read, Write, Edit']);
+      
+      expect(args.allowedTools).toEqual(['Read', 'Write', 'Edit']);
+    });
+
+    it('should treat first unconsumed argument as prompt', () => {
+      const args = ArgumentParser.parseArgs(['hello world', '--max-turns', '5']);
+      
+      expect(args.prompt).toBe('hello world');
+      expect(args.maxTurns).toBe(5);
+    });
+
+    it('should handle multiple arguments correctly', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'test prompt',
+        '--max-turns', '15',
+        '--allowedTools', 'Read,Write',
+        '--disallowedTools', 'Bash'
+      ]);
+      
+      expect(args.prompt).toBe('test prompt');
+      expect(args.maxTurns).toBe(15);
+      expect(args.allowedTools).toEqual(['Read', 'Write']);
+      expect(args.disallowedTools).toEqual(['Bash']);
+    });
+
+    it('should handle invalid max turns gracefully', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--max-turns', 'invalid']);
+      
+      expect(args.maxTurns).toBeUndefined();
+    });
+
+    it('should handle empty tool lists', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--allowedTools', '']);
+      
+      expect(args.allowedTools).toEqual([]);
+    });
+  });
+
+  describe('validateArgs', () => {
+    it('should validate valid args with prompt', () => {
+      const args: CLIArgs = { prompt: 'test prompt' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should validate valid args with input file', () => {
+      const args: CLIArgs = { inputFile: 'test.txt' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should validate help command', () => {
+      const args: CLIArgs = { help: true };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should reject args without prompt or file', () => {
+      const args: CLIArgs = { maxTurns: 10 };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should reject invalid max turns (zero)', () => {
+      const args: CLIArgs = { prompt: 'test', maxTurns: 0 };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should reject invalid max turns (over 100)', () => {
+      const args: CLIArgs = { prompt: 'test', maxTurns: 101 };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should reject empty session ID', () => {
+      const args: CLIArgs = { prompt: 'test', sessionId: '' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should reject both continue and resume', () => {
+      const args: CLIArgs = { prompt: 'test', continue: true, sessionId: 'session123' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should accept valid max turns', () => {
+      const args: CLIArgs = { prompt: 'test', maxTurns: 50 };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+  });
+
+  describe('getValidationError', () => {
+    it('should return null for valid args', () => {
+      const args: CLIArgs = { prompt: 'test' };
+      
+      expect(ArgumentParser.getValidationError(args)).toBeNull();
+    });
+
+    it('should return null for help command', () => {
+      const args: CLIArgs = { help: true };
+      
+      expect(ArgumentParser.getValidationError(args)).toBeNull();
+    });
+
+    it('should return error for missing prompt and file', () => {
+      const args: CLIArgs = {};
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Please provide either -i <prompt> or -f <file>');
+    });
+
+    it('should return error for invalid max turns', () => {
+      const args: CLIArgs = { prompt: 'test', maxTurns: 0 };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Max turns must be between 1 and 100');
+    });
+
+    it('should return error for empty session ID', () => {
+      const args: CLIArgs = { prompt: 'test', sessionId: '   ' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Session ID must be a non-empty string');
+    });
+
+    it('should return error for conflicting options', () => {
+      const args: CLIArgs = { prompt: 'test', continue: true, sessionId: 'session123' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Cannot use both --continue and --resume options');
+    });
+  });
+});
