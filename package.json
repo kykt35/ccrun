@@ -4,7 +4,7 @@
   "description": "A tool to make Claude's print mode more user-friendly",
   "main": "index.ts",
   "bin": {
-    "ccrun": "./dist/src/index.js"
+    "ccrun": "./dist/index.js"
   },
   "keywords": [
     "claude",
@@ -12,7 +12,7 @@
     "ai",
     "streaming"
   ],
-  "author": "",
+  "author": "kykt35",
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/claude-code": "^1.0.41",

@@ -18,17 +18,26 @@ export class ArgumentParser {
       const arg = argv[i];
 
       if (arg === '-i' || arg === '--input') {
-        args.prompt = argv[++i];
+        const nextArg = argv[++i];
+        if (nextArg !== undefined) {
+          args.prompt = nextArg;
+        }
         consumed.add(i - 1);
         consumed.add(i);
       } else if (arg === '-f' || arg === '--file') {
-        args.inputFile = argv[++i];
+        const nextArg = argv[++i];
+        if (nextArg !== undefined) {
+          args.inputFile = nextArg;
+        }
         consumed.add(i - 1);
         consumed.add(i);
       } else if (arg === '--max-turns') {
-        const maxTurns = parseInt(argv[++i], 10);
-        if (!isNaN(maxTurns)) {
-          args.maxTurns = maxTurns;
+        const nextArg = argv[++i];
+        if (nextArg !== undefined) {
+          const maxTurns = parseInt(nextArg, 10);
+          if (!isNaN(maxTurns)) {
+            args.maxTurns = maxTurns;
+          }
         }
         consumed.add(i - 1);
         consumed.add(i);
@@ -36,17 +45,24 @@ export class ArgumentParser {
         args.continue = true;
         consumed.add(i);
       } else if (arg === '--resume') {
-        args.sessionId = argv[++i];
+        const nextArg = argv[++i];
+        if (nextArg !== undefined) {
+          args.sessionId = nextArg;
+        }
         consumed.add(i - 1);
         consumed.add(i);
       } else if (arg === '--allowedTools') {
         const tools = argv[++i];
-        args.allowedTools = tools ? tools.replace(/\s/g, '').split(',').filter(t => t.length > 0) : [];
+        if (tools !== undefined) {
+          args.allowedTools = tools.replace(/\s/g, '').split(',').filter(t => t.length > 0);
+        }
         consumed.add(i - 1);
         consumed.add(i);
       } else if (arg === '--disallowedTools') {
         const tools = argv[++i];
-        args.disallowedTools = tools ? tools.replace(/\s/g, '').split(',').filter(t => t.length > 0) : [];
+        if (tools !== undefined) {
+          args.disallowedTools = tools.replace(/\s/g, '').split(',').filter(t => t.length > 0);
+        }
         consumed.add(i - 1);
         consumed.add(i);
       } else if (arg === '-h' || arg === '--help') {
@@ -59,8 +75,11 @@ export class ArgumentParser {
     if (!args.prompt && !args.inputFile && !args.help) {
       for (let i = 0; i < argv.length; i++) {
         if (!consumed.has(i)) {
-          args.prompt = argv[i];
-          break;
+          const unconsumedArg = argv[i];
+          if (unconsumedArg !== undefined) {
+            args.prompt = unconsumedArg;
+            break;
+          }
         }
       }
     }
