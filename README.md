@@ -45,6 +45,54 @@ npm start -- -i "こんにちは"
 - `--disallowedTools <tools>`: 禁止するツールをカンマ区切りで指定
 - `-h, --help`: ヘルプを表示
 
+### 使用例
+
+#### 基本的な使用方法
+
+```bash
+# 直接プロンプトを指定
+ccrun -i "TypeScriptのコードを書いてください"
+
+# ファイルからプロンプトを読み込む
+ccrun -f prompt.txt
+
+# ヘルプを表示
+ccrun -h
+```
+
+#### セッション管理
+
+```bash
+# 前のセッションを継続
+ccrun --continue -i "さらに詳しく説明してください"
+
+# 特定のセッションを再開
+ccrun --resume abc123 -i "追加の質問があります"
+```
+
+#### ツール制限
+
+```bash
+# 特定のツールのみ許可
+ccrun -i "ファイルを読み込んでください" --allowedTools "Read,Write"
+
+# 特定のツールを禁止
+ccrun -i "コードを実行してください" --disallowedTools "Bash"
+
+# 複数のツールを組み合わせ
+ccrun -i "プロジェクトを分析してください" --allowedTools "Read,Grep,Glob" --disallowedTools "Write,Edit"
+```
+
+#### その他のオプション
+
+```bash
+# 最大ターン数を制限
+ccrun -i "長い議論をしましょう" --max-turns 10
+
+# 複数のオプションを組み合わせ
+ccrun -f input.txt --continue --max-turns 5 --allowedTools "Read,Write"
+```
+
 ---
 
 ## グローバルコマンドとして使う方法
