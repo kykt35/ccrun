@@ -41,10 +41,17 @@ export class ConfigManager {
     const mergedAllowed = [...new Set([...cliAllowed, ...settingsAllowed])];
     const mergedDenied = [...new Set([...cliDenied, ...settingsDenied])];
 
-    return {
-      allowedTools: mergedAllowed.length > 0 ? mergedAllowed : undefined,
-      disallowedTools: mergedDenied.length > 0 ? mergedDenied : undefined
-    };
+    const result: ToolPermissions = {};
+    
+    if (mergedAllowed.length > 0) {
+      result.allowedTools = mergedAllowed;
+    }
+    
+    if (mergedDenied.length > 0) {
+      result.disallowedTools = mergedDenied;
+    }
+    
+    return result;
   }
 
   static validateConfig(config: CCRunConfig): boolean {
@@ -88,14 +95,26 @@ export class ConfigManager {
     );
 
     const config: CCRunConfig = {
-      prompt,
-      inputFile,
       maxTurns: options.maxTurns || settings?.maxTurns || 50,
-      sessionId: options.sessionId,
       continue: options.continue || false,
-      resume: options.resume,
       ...toolPermissions
     };
+
+    if (prompt !== undefined) {
+      config.prompt = prompt;
+    }
+
+    if (inputFile !== undefined) {
+      config.inputFile = inputFile;
+    }
+
+    if (options.sessionId !== undefined) {
+      config.sessionId = options.sessionId;
+    }
+
+    if (options.resume !== undefined) {
+      config.resume = options.resume;
+    }
 
     if (!this.validateConfig(config)) {
       throw new Error('Invalid configuration provided');

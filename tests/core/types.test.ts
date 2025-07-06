@@ -69,10 +69,10 @@ describe('Core Types', () => {
         customSetting: 'value'
       };
 
-      expect(settings.allowedTools).toEqual(['Read', 'Write']);
-      expect(settings.disallowedTools).toEqual(['Bash']);
+      expect(settings['allowedTools']).toEqual(['Read', 'Write']);
+      expect(settings['disallowedTools']).toEqual(['Bash']);
       expect(settings.maxTurns).toBe(50);
-      expect(settings.customSetting).toBe('value');
+      expect(settings['customSetting']).toBe('value');
     });
   });
 

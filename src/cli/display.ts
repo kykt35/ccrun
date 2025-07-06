@@ -24,7 +24,7 @@ export class DisplayManager {
       ''
     ];
 
-    if (error.stack && process.env.DEBUG) {
+    if (error.stack && process.env['DEBUG']) {
       errorLines.push('Stack trace:');
       errorLines.push(error.stack);
       errorLines.push('');
@@ -69,7 +69,7 @@ export class DisplayManager {
   }
 
   static formatSessionInfo(sessionId: string): string {
-    return `🔗 Session ID: ${sessionId}\n💡 Continue with claude code: claude --continue or claude --resume ${sessionId}\n`;
+    return `🔗 Session ID: ${sessionId}\n💡 Continue with: ccrun --continue or ccrun --resume ${sessionId}`;
   }
 
   static formatResult(result: CCRunResult): string {

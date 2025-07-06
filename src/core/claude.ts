@@ -13,16 +13,27 @@ export class ClaudeWrapper {
     let sessionId: string | undefined;
 
     try {
+      const options: any = {};
+      if (config.allowedTools?.length) {
+        options.allowedTools = config.allowedTools;
+      }
+      if (config.disallowedTools?.length) {
+        options.disallowedTools = config.disallowedTools;
+      }
+      if (config.maxTurns !== undefined) {
+        options.maxTurns = config.maxTurns;
+      }
+      if (config.continue !== undefined) {
+        options.continue = config.continue;
+      }
+      if (config.resume !== undefined) {
+        options.resume = config.resume;
+      }
+
       const stream = query({
         prompt,
         abortController: new AbortController(),
-        options: {
-          allowedTools: config.allowedTools?.length ? config.allowedTools : undefined,
-          disallowedTools: config.disallowedTools?.length ? config.disallowedTools : undefined,
-          maxTurns: config.maxTurns,
-          continue: config.continue,
-          resume: config.resume
-        }
+        options
       });
 
       for await (const chunk of stream) {
@@ -39,16 +50,21 @@ export class ClaudeWrapper {
       error = err instanceof Error ? err.message : 'Unknown error occurred';
     }
 
-    return {
+    const result: CCRunResult = {
       success: !error,
       messages,
       sessionId: sessionId || 'unknown',
-      error,
       metadata: {
         timestamp: new Date(),
         sessionId: sessionId || 'unknown'
       }
     };
+
+    if (error) {
+      result.error = error;
+    }
+
+    return result;
   }
 
   async cleanup(): Promise<void> {

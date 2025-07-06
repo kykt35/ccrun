@@ -129,15 +129,15 @@ describe('DisplayManager', () => {
     });
 
     it('should include stack trace in debug mode', () => {
-      const originalDebug = process.env.DEBUG;
-      process.env.DEBUG = 'true';
+      const originalDebug = process.env['DEBUG'];
+      process.env['DEBUG'] = 'true';
 
       const error = new Error('Test error');
       const formatted = DisplayManager.formatError(error);
 
       expect(formatted).toContain('Stack trace:');
 
-      process.env.DEBUG = originalDebug;
+      process.env['DEBUG'] = originalDebug;
     });
   });
 

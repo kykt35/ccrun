@@ -1,4 +1,3 @@
-#!/usr/bin/env -S tsx
 import { runCLI } from './cli';
 
 /**
