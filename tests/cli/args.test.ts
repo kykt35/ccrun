@@ -70,13 +70,15 @@ describe('ArgumentParser', () => {
         '-i', 'test prompt',
         '--max-turns', '15',
         '--allowedTools', 'Read,Write',
-        '--disallowedTools', 'Bash'
+        '--disallowedTools', 'Bash',
+        '--permission-mode', 'acceptEdits'
       ]);
       
       expect(args.prompt).toBe('test prompt');
       expect(args.maxTurns).toBe(15);
       expect(args.allowedTools).toEqual(['Read', 'Write']);
       expect(args.disallowedTools).toEqual(['Bash']);
+      expect(args.permissionMode).toBe('acceptEdits');
     });
 
     it('should handle invalid max turns gracefully', () => {
@@ -89,6 +91,27 @@ describe('ArgumentParser', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--allowedTools', '']);
       
       expect(args.allowedTools).toEqual([]);
+    });
+
+    it('should parse permission mode', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--permission-mode', 'plan']);
+      
+      expect(args.permissionMode).toBe('plan');
+    });
+
+    it('should parse all permission modes', () => {
+      const modes = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
+      
+      modes.forEach(mode => {
+        const args = ArgumentParser.parseArgs(['-i', 'test', '--permission-mode', mode]);
+        expect(args.permissionMode).toBe(mode);
+      });
+    });
+
+    it('should ignore invalid permission modes', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--permission-mode', 'invalid']);
+      
+      expect(args.permissionMode).toBeUndefined();
     });
   });
 
@@ -143,6 +166,21 @@ describe('ArgumentParser', () => {
 
     it('should accept valid max turns', () => {
       const args: CLIArgs = { prompt: 'test', maxTurns: 50 };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should validate valid permission modes', () => {
+      const modes = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
+      
+      modes.forEach(mode => {
+        const args: CLIArgs = { prompt: 'test', permissionMode: mode as any };
+        expect(ArgumentParser.validateArgs(args)).toBe(true);
+      });
+    });
+
+    it('should validate args without permission mode', () => {
+      const args: CLIArgs = { prompt: 'test' };
       
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });

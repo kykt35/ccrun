@@ -29,6 +29,7 @@ export class ClaudeWrapper {
       if (config.resume !== undefined) {
         options.resume = config.resume;
       }
+      options.permissionMode = config.permissionMode || 'default';
 
       const stream = query({
         prompt,

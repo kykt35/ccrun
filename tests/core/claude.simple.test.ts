@@ -57,10 +57,8 @@ describe('ClaudeWrapper', () => {
         abortController: expect.any(AbortController),
         options: {
           allowedTools: ['Read', 'Write'],
-          disallowedTools: undefined,
           maxTurns: 10,
-          continue: undefined,
-          resume: undefined
+          permissionMode: 'default'
         }
       });
     });
