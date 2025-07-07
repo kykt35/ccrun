@@ -8,30 +8,31 @@
 
 ## 使い方
 
-### 1. 依存パッケージのインストール
+### 1. リポジトリのクローン
+
+```bash
+git clone https://github.com/kykt35/ccrun.git
+cd ccrun
+```
+
+### 2. 依存パッケージのインストール
 
 ``` bash
 npm install
 ```
 
-### 2. ビルド（初回のみ）
+### 3. ビルド（初回のみ）
 
 ```bash
 npm run build
 ```
 
-### 3. CLIとして直接実行
+### 4. CLIとして直接実行
 
 TypeScriptファイルを直接実行する場合：
 
 ```bash
-npm run dev -- -i "こんにちは"
-```
-
-または、ビルド後のJavaScriptファイルを実行：
-
-```bash
-npm start -- -i "こんにちは"
+npm run exec -- -i "こんにちは"
 ```
 
 #### 主なオプション

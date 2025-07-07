@@ -2,7 +2,7 @@
   "name": "ccrun",
   "version": "0.1.0",
   "description": "A tool to make Claude's print mode more user-friendly",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "bin": {
     "ccrun": "./dist/index.js"
   },
@@ -28,8 +28,7 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "start": "node index.ts",
-    "dev": "tsx src/index.ts",
+    "exec": "tsx src/index.ts",
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
