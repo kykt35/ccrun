@@ -19,7 +19,8 @@ describe('Core Types', () => {
         allowedTools: ['Read', 'Write'],
         disallowedTools: ['Bash'],
         continue: true,
-        resume: 'session456'
+        resume: 'session456',
+        permissionMode: 'plan'
       };
 
       expect(config.prompt).toBe('test prompt');
@@ -30,6 +31,7 @@ describe('Core Types', () => {
       expect(config.disallowedTools).toEqual(['Bash']);
       expect(config.continue).toBe(true);
       expect(config.resume).toBe('session456');
+      expect(config.permissionMode).toBe('plan');
     });
 
     it('should create config with minimal properties', () => {
@@ -38,6 +40,19 @@ describe('Core Types', () => {
       expect(config.prompt).toBeUndefined();
       expect(config.inputFile).toBeUndefined();
       expect(config.maxTurns).toBeUndefined();
+      expect(config.permissionMode).toBeUndefined();
+    });
+
+    it('should create config with valid permission modes', () => {
+      const modes = ['default', 'acceptEdits', 'bypassPermissions', 'plan'];
+      
+      modes.forEach(mode => {
+        const config: CCRunConfig = {
+          permissionMode: mode as any
+        };
+        
+        expect(config.permissionMode).toBe(mode);
+      });
     });
   });
 

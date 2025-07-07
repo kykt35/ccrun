@@ -31,10 +31,11 @@ It supports direct prompts, file input, session continuation, and tool filtering
   --resume <session-id>       Resume a specific session by ID
   --allowedTools <tools>      Comma-separated list of allowed tools
   --disallowedTools <tools>   Comma-separated list of disallowed tools
+  --permission-mode <mode>    Set permission mode (default|plan|acceptEdits|bypassPermissions)
   -h, --help                  Show this help message
 
 Available Tools:
-  Read, Write, Edit, MultiEdit, Bash, Glob, Grep, LS, WebFetch, 
+  Read, Write, Edit, MultiEdit, Bash, Glob, Grep, LS, WebFetch,
   WebSearch, TodoRead, TodoWrite, Task`;
   }
 
@@ -60,13 +61,17 @@ Available Tools:
   ccrun -i "Analyze this codebase" --allowedTools "Read,Grep,LS"
   ccrun -i "Write documentation" --disallowedTools "Bash,WebFetch"
 
+  # Permission mode
+  ccrun -i "Help me refactor this code" --permission-mode acceptEdits
+  ccrun -i "Plan out the implementation" --permission-mode plan
+
   # Multiple options
   ccrun -f requirements.txt --max-turns 10 --allowedTools "Read,Write,Edit"`;
   }
 
   static generateToolsHelp(): string {
     return `Available Tools:
-  
+
 File Operations:
   Read      - Read file contents
   Write     - Write files to filesystem
@@ -74,42 +79,42 @@ File Operations:
   MultiEdit - Make multiple edits to files
   LS        - List directory contents
   Glob      - Find files by pattern
-  
+
 System Operations:
   Bash      - Execute bash commands
   Grep      - Search file contents
-  
+
 Web Operations:
   WebFetch  - Fetch web content
   WebSearch - Search the web
-  
+
 Task Management:
   TodoRead  - Read todo lists
   TodoWrite - Manage todo items
   Task      - Launch sub-agents
-  
+
 Tool Usage:
   --allowedTools "Read,Write,Edit"     # Only allow these tools
   --disallowedTools "Bash,WebFetch"    # Block these tools
-  
+
 Note: Tool names are case-sensitive`;
   }
 
   static generateSessionHelp(): string {
     return `Session Management:
-  
+
 Continue Previous Session:
   ccrun --continue -i "Follow up question"
-  
+
 Resume Specific Session:
   ccrun --resume <session-id> -i "Continue our conversation"
-  
+
 Session Information:
   - Sessions are automatically saved and can be resumed later
   - Use --continue to continue the most recent session
   - Use --resume with a specific session ID for older sessions
   - Session IDs are displayed when a session ends
-  
+
 Examples:
   ccrun --continue -i "Can you explain that in more detail?"
   ccrun --resume sess-abc123 -i "Let's continue our discussion"`;

@@ -7,6 +7,7 @@ export interface CCRunConfig {
   disallowedTools?: string[];
   continue?: boolean;
   resume?: string;
+  permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
 }
 
 export interface ToolPermissions {

@@ -38,23 +38,35 @@ export class CLIManager {
       const cliAllowed = args.allowedTools || [];
       const cliDenied = args.disallowedTools || [];
       const toolPermissions = ConfigManager.mergeToolPermissions(cliAllowed, cliDenied, settings);
-      
+
+      // Display permission mode
+      console.log(`permissionMode: ${args.permissionMode || 'default'}\n`);
+
       // Display tool permissions like the original implementation
       const allowedTools = toolPermissions.allowedTools || [];
       const disallowedTools = toolPermissions.disallowedTools || [];
       console.log(`allowedTools: ${allowedTools.join(', ') || '(none specified)'}`);
-      console.log(`disallowedTools: ${disallowedTools.join(', ') || '(none specified)'}\n`);
+      console.log(`disallowedTools: ${disallowedTools.join(', ') || '(none specified)'}`);
 
       // Convert CLI args to core config with merged tool permissions
       const config = { ...this.argsToConfig(args), ...toolPermissions };
-      
+
+      // Check for bypassPermissions mode and ask for confirmation
+      if (config.permissionMode === 'bypassPermissions') {
+        const confirmed = await this.confirmBypassPermissions();
+        if (!confirmed) {
+          console.log('Operation cancelled by user.');
+          process.exit(0);
+        }
+      }
+
       // Execute the request
       const generator = this.ccrunService.execute(
         args.prompt,
         args.inputFile,
         config
       );
-      
+
       // Process streaming results
       let sessionId: string | undefined;
       const usedTools: string[] = [];
@@ -126,6 +138,10 @@ export class CLIManager {
       config.resume = args.sessionId;
     }
 
+    if (args.permissionMode) {
+      config.permissionMode = args.permissionMode;
+    }
+
     return config;
   }
 
@@ -146,6 +162,22 @@ export class CLIManager {
         }
       }
     }
+  }
+
+  private async confirmBypassPermissions(): Promise<boolean> {
+    const readline = require('readline').createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    return new Promise((resolve) => {
+      console.log('⚠️  WARNING: You are about to use bypassPermissions mode.');
+      console.log('This mode will bypass all permission checks and may perform actions without confirmation.');
+      readline.question('Are you sure you want to continue? (y/N): ', (answer: string) => {
+        readline.close();
+        resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+      });
+    });
   }
 
   async cleanup(): Promise<void> {

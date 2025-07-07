@@ -1,3 +1,5 @@
+import { ValidationUtils } from '../utils/validation';
+
 export interface CLIArgs {
   prompt?: string;
   inputFile?: string;
@@ -7,6 +9,7 @@ export interface CLIArgs {
   disallowedTools?: string[];
   continue?: boolean;
   help?: boolean;
+  permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
 }
 
 export class ArgumentParser {
@@ -62,6 +65,13 @@ export class ArgumentParser {
         const tools = argv[++i];
         if (tools !== undefined) {
           args.disallowedTools = tools.replace(/\s/g, '').split(',').filter(t => t.length > 0);
+        }
+        consumed.add(i - 1);
+        consumed.add(i);
+      } else if (arg === '--permission-mode') {
+        const nextArg = argv[++i];
+        if (nextArg !== undefined && ValidationUtils.validatePermissionMode(nextArg)) {
+          args.permissionMode = nextArg as 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
         }
         consumed.add(i - 1);
         consumed.add(i);
