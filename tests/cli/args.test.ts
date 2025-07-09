@@ -113,6 +113,18 @@ describe('ArgumentParser', () => {
       
       expect(args.permissionMode).toBeUndefined();
     });
+
+    it('should parse settings file with --settingFile flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--settingFile', 'custom-settings.json']);
+      
+      expect(args.settingsFile).toBe('custom-settings.json');
+    });
+
+    it('should parse settings file with -s flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '-s', './config/settings.json']);
+      
+      expect(args.settingsFile).toBe('./config/settings.json');
+    });
   });
 
   describe('validateArgs', () => {
@@ -184,6 +196,24 @@ describe('ArgumentParser', () => {
       
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
+
+    it('should validate args with valid settings file', () => {
+      const args: CLIArgs = { prompt: 'test', settingsFile: 'custom-settings.json' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should reject empty settings file path', () => {
+      const args: CLIArgs = { prompt: 'test', settingsFile: '' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should reject whitespace-only settings file path', () => {
+      const args: CLIArgs = { prompt: 'test', settingsFile: '   ' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
   });
 
   describe('getValidationError', () => {
@@ -225,6 +255,19 @@ describe('ArgumentParser', () => {
       
       const error = ArgumentParser.getValidationError(args);
       expect(error).toBe('Cannot use both --continue and --resume options');
+    });
+
+    it('should return error for invalid settings file path', () => {
+      const args: CLIArgs = { prompt: 'test', settingsFile: '   ' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Settings file path must be a non-empty string');
+    });
+
+    it('should return null for valid settings file path', () => {
+      const args: CLIArgs = { prompt: 'test', settingsFile: 'custom-settings.json' };
+      
+      expect(ArgumentParser.getValidationError(args)).toBeNull();
     });
   });
 });

@@ -10,6 +10,7 @@ export interface CLIArgs {
   continue?: boolean;
   help?: boolean;
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
+  settingsFile?: string;
 }
 
 export class ArgumentParser {
@@ -75,6 +76,13 @@ export class ArgumentParser {
         }
         consumed.add(i - 1);
         consumed.add(i);
+      } else if (arg === '--settingFile' || arg === '-s') {
+        const nextArg = argv[++i];
+        if (nextArg !== undefined) {
+          args.settingsFile = nextArg;
+        }
+        consumed.add(i - 1);
+        consumed.add(i);
       } else if (arg === '-h' || arg === '--help') {
         args.help = true;
         consumed.add(i);
@@ -118,6 +126,11 @@ export class ArgumentParser {
       return false;
     }
 
+    // Validate settingsFile if provided
+    if (args.settingsFile !== undefined && (typeof args.settingsFile !== 'string' || args.settingsFile.trim().length === 0)) {
+      return false;
+    }
+
     // Cannot use both continue and resume
     if (args.continue && args.sessionId) {
       return false;
@@ -141,6 +154,10 @@ export class ArgumentParser {
 
     if (args.sessionId !== undefined && (typeof args.sessionId !== 'string' || args.sessionId.trim().length === 0)) {
       return 'Session ID must be a non-empty string';
+    }
+
+    if (args.settingsFile !== undefined && (typeof args.settingsFile !== 'string' || args.settingsFile.trim().length === 0)) {
+      return 'Settings file path must be a non-empty string';
     }
 
     if (args.continue && args.sessionId) {
