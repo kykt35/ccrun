@@ -44,6 +44,7 @@ npm run exec -- -i "こんにちは"
 - `--resume <session-id>`: セッションIDから再開
 - `--allowedTools <tools>`: 許可するツールをカンマ区切りで指定
 - `--disallowedTools <tools>`: 禁止するツールをカンマ区切りで指定
+- `--settingFile <filePath>`, `-s <filePath>`: 設定ファイルを指定
 - `-h, --help`: ヘルプを表示
 
 ### 使用例
@@ -84,6 +85,16 @@ ccrun -i "コードを実行してください" --disallowedTools "Bash"
 ccrun -i "プロジェクトを分析してください" --allowedTools "Read,Grep,Glob" --disallowedTools "Write,Edit"
 ```
 
+#### 設定ファイルの使用
+
+```bash
+# カスタム設定ファイルを指定
+ccrun -i "ファイルを読み込んでください" --settingFile ./my-settings.json
+
+# 短縮形も使用可能
+ccrun -i "プロジェクトを分析してください" -s ../shared-settings.json
+```
+
 #### その他のオプション
 
 ```bash
@@ -117,6 +128,8 @@ ccrun -i "こんにちは"
 
 ## 設定ファイル
 
+### デフォルト設定ファイル
+
 `.claude/settings.json` または `.claude/settings.local.json` に設定を書くことができます：
 
 ```json
@@ -124,8 +137,62 @@ ccrun -i "こんにちは"
   "permissions": {
     "allow": ["Read", "Write"],
     "deny": ["Edit"]
-  }
+  },
+  "maxTurns": 25
 }
+```
+
+### カスタム設定ファイル
+
+`--settingFile` オプションで任意の設定ファイルを指定できます：
+
+```bash
+ccrun -i "プロンプト" --settingFile ./custom-settings.json
+```
+
+### 設定ファイルの優先度
+
+1. **最優先**: `--settingFile`で指定されたファイル
+2. **次優先**: `.claude/settings.local.json`
+3. **最後**: `.claude/settings.json`
+
+### 設定ファイルの形式
+
+```json
+{
+  "permissions": {
+    "allow": ["Read", "Write", "Edit"],
+    "deny": ["Bash", "WebFetch"]
+  },
+  "maxTurns": 50
+}
+```
+
+### 設定ファイルの例
+
+プロジェクトには設定ファイル例が含まれています：
+
+#### 設定例 (`.ccrun/settings.example.json`)
+
+```json
+{
+  "permissions": {
+    "allow": ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "LS"],
+    "deny": ["Bash", "WebFetch", "WebSearch"]
+  },
+  "maxTurns": 30
+}
+```
+
+#### 使用例
+
+```bash
+# 設定例を使用
+ccrun -i "コードを分析してください" --settingFile .ccrun/settings.example.json
+
+# 設定例をコピーして独自の設定を作成
+cp .ccrun/settings.example.json .ccrun/settings.local.json
+ccrun -i "プロンプト" --settingFile .ccrun/settings.local.json
 ```
 
 ---

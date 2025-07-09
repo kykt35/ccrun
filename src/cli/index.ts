@@ -34,7 +34,7 @@ export class CLIManager {
       console.log('🚀 CCRun starting...\n');
 
       // Load settings and merge with CLI args
-      const settings = await ConfigManager.loadSettings();
+      const settings = await ConfigManager.loadSettings(args.settingsFile);
       const cliAllowed = args.allowedTools || [];
       const cliDenied = args.disallowedTools || [];
       const toolPermissions = ConfigManager.mergeToolPermissions(cliAllowed, cliDenied, settings);

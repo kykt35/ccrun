@@ -32,6 +32,7 @@ It supports direct prompts, file input, session continuation, and tool filtering
   --allowedTools <tools>      Comma-separated list of allowed tools
   --disallowedTools <tools>   Comma-separated list of disallowed tools
   --permission-mode <mode>    Set permission mode (default|plan|acceptEdits|bypassPermissions)
+  -s, --settingFile <file>    Specify custom settings file path
   -h, --help                  Show this help message
 
 Available Tools:
@@ -64,6 +65,10 @@ Available Tools:
   # Permission mode
   ccrun -i "Help me refactor this code" --permission-mode acceptEdits
   ccrun -i "Plan out the implementation" --permission-mode plan
+
+  # Custom settings file
+  ccrun -i "Analyze the code" --settingFile ./my-settings.json
+  ccrun -i "Write tests" -s ../shared-settings.json
 
   # Multiple options
   ccrun -f requirements.txt --max-turns 10 --allowedTools "Read,Write,Edit"`;

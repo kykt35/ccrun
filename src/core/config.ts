@@ -10,9 +10,29 @@ export class ConfigManager {
     ".claude/settings.json"
   ];
 
-  static async loadSettings(): Promise<Settings | null> {
+  static async loadSettings(customPath?: string): Promise<Settings | null> {
     const baseDir = process.cwd();
     
+    // 1. 引数で指定されたファイルを最優先
+    if (customPath) {
+      const absPath = join(baseDir, customPath);
+      if (existsSync(absPath)) {
+        try {
+          const content = await readFile(absPath, 'utf-8');
+          const settings = JSON.parse(content);
+          console.log(`${customPath} was loaded`);
+          return settings;
+        } catch (error) {
+          console.error(`${customPath} failed to load or parse: ${(error as Error).message}`);
+          process.exit(1);
+        }
+      } else {
+        console.error(`Specified settings file not found: ${customPath}`);
+        process.exit(1);
+      }
+    }
+    
+    // 2. デフォルトのファイルを順番にチェック
     for (const relPath of this.SETTINGS_PATHS) {
       const absPath = join(baseDir, relPath);
       if (existsSync(absPath)) {
