@@ -168,6 +168,33 @@ ccrun -i "プロンプト" --settingFile ./custom-settings.json
 }
 ```
 
+### 設定ファイルの例
+
+プロジェクトには設定ファイル例が含まれています：
+
+#### 設定例 (`.ccrun/settings.example.json`)
+
+```json
+{
+  "permissions": {
+    "allow": ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "LS"],
+    "deny": ["Bash", "WebFetch", "WebSearch"]
+  },
+  "maxTurns": 30
+}
+```
+
+#### 使用例
+
+```bash
+# 設定例を使用
+ccrun -i "コードを分析してください" --settingFile .ccrun/settings.example.json
+
+# 設定例をコピーして独自の設定を作成
+cp .ccrun/settings.example.json .ccrun/settings.local.json
+ccrun -i "プロンプト" --settingFile .ccrun/settings.local.json
+```
+
 ---
 
 ## 注意事項

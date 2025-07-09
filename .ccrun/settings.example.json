@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "LS"],
+    "deny": ["Bash", "WebFetch", "WebSearch"]
+  },
+  "maxTurns": 30
+}
