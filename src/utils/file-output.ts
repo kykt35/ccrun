@@ -43,10 +43,15 @@ export class FileOutputManager {
       .replace(/\..+/, '')
       .replace('T', '');
     
-    const dir = outputDir || settings?.output?.directory || this.getDefaultOutputDirectory();
-    const format = settings?.output?.format || 'json';
-    const prefix = settings?.output?.filename?.prefix || '';
-    const suffix = settings?.output?.filename?.suffix || '';
+    const dir = outputDir || 
+      (typeof settings?.output?.directory === 'string' ? settings.output.directory : null) || 
+      this.getDefaultOutputDirectory();
+    const format = (settings?.output?.format === 'json' || settings?.output?.format === 'text') ? 
+      settings.output.format : 'json';
+    const prefix = (typeof settings?.output?.filename?.prefix === 'string') ? 
+      settings.output.filename.prefix : '';
+    const suffix = (typeof settings?.output?.filename?.suffix === 'string') ? 
+      settings.output.filename.suffix : '';
     
     let filename = timestamp;
     if (prefix) filename = prefix + filename;
@@ -76,31 +81,14 @@ export class FileOutputManager {
         return outputFile;
       }
       // Relative path specified - consider output-dir
-      const dir = outputDir || settings?.output?.directory || process.cwd();
+      const dir = outputDir || 
+        (typeof settings?.output?.directory === 'string' ? settings.output.directory : null) || 
+        process.cwd();
       return join(dir, outputFile);
     }
     
     // -o option omitted - use default name
     return this.generateDefaultOutputPath(outputDir, settings);
-  }
-
-  private static validateOutputPath(filePath: string): boolean {
-    try {
-      // Basic validation - check if path is not empty and doesn't contain invalid characters
-      if (!filePath || filePath.trim().length === 0) {
-        return false;
-      }
-      
-      // Check for invalid characters (basic check)
-      const invalidChars = /[<>:"|?*]/;
-      if (invalidChars.test(filePath)) {
-        return false;
-      }
-      
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   private static async ensureDirectoryExists(filePath: string): Promise<void> {

@@ -1,0 +1,23 @@
+{
+  "result": {
+    "type": "result",
+    "subtype": "success",
+    "duration_ms": 1000,
+    "duration_api_ms": 800,
+    "is_error": false,
+    "num_turns": 1,
+    "result": "Test result",
+    "session_id": "test-session",
+    "total_cost_usd": 0.001,
+    "usage": {
+      "input_tokens": 100,
+      "output_tokens": 50,
+      "total_tokens": 150
+    }
+  },
+  "metadata": {
+    "timestamp": "2025-07-09T07:54:11.059Z",
+    "version": "1.0.0",
+    "config": {}
+  }
+}
