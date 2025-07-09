@@ -100,7 +100,7 @@ export class ConfigManager {
 
   static mergeOutputSettings(
     cliOutput?: string,
-    cliOutputDir?: string,
+    _cliOutputDir?: string,
     cliOutputFormat?: 'json' | 'text',
     cliNoOutput?: boolean,
     settings?: Settings | null
