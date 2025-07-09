@@ -7,7 +7,6 @@
   "output": {
     "enabled": true,
     "directory": "./tmp/test",
-    "format": "json",
     "filename": {
       "prefix": "test",
       "suffix": "suf"

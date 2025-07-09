@@ -53,8 +53,8 @@ export class CLIManager {
       console.log(`disallowedTools: ${disallowedTools.join(', ') || '(none specified)'}`);
 
       // Display output settings
-      if (outputSettings.outputPath) {
-        console.log(`output: ${outputSettings.outputPath === 'auto-generate' ? 'auto-generated' : outputSettings.outputPath} (${outputSettings.outputFormat})`);
+      if (outputSettings.outputFile) {
+        console.log(`output: ${outputSettings.outputFile === 'auto-generate' ? 'auto-generated' : outputSettings.outputFile} (${outputSettings.outputFormat})`);
       } else {
         console.log('output: disabled');
       }
@@ -107,7 +107,7 @@ export class CLIManager {
       }
 
       // Handle file output if enabled and result is available
-      if (outputSettings.outputPath && finalResult) {
+      if (outputSettings.outputFile && finalResult) {
         try {
           await this.handleFileOutput(finalResult, outputSettings, config, args, settings, startTime);
         } catch (error) {
@@ -170,27 +170,27 @@ export class CLIManager {
   }
 
   private async processOutputSettings(args: CLIArgs, settings: any): Promise<{
-    outputPath: string | null;
+    outputFile: string | null;
     outputFormat: 'json' | 'text';
   }> {
     return ConfigManager.mergeOutputSettings(
-      args.output,
+      args.outputFile,
       args.outputDir,
       args.outputFormat,
-      args.noOutput,
+      args.outputEnabled,
       settings
     );
   }
 
   private async handleFileOutput(
     result: SDKResultMessage,
-    outputSettings: { outputPath: string | null; outputFormat: 'json' | 'text' },
+    outputSettings: { outputFile: string | null; outputFormat: 'json' | 'text' },
     config: CCRunConfig,
     args: CLIArgs,
     settings: any,
     startTime: number
   ): Promise<void> {
-    if (!outputSettings.outputPath) {
+    if (!outputSettings.outputFile) {
       return;
     }
 
@@ -198,9 +198,9 @@ export class CLIManager {
     const sdkResult = result;
 
     // Resolve the actual output path
-    const resolvedPath = outputSettings.outputPath === 'auto-generate'
-      ? FileOutputManager.resolveOutputPath(args.output, args.outputDir, args.noOutput, settings)
-      : outputSettings.outputPath;
+    const resolvedPath = outputSettings.outputFile === 'auto-generate'
+      ? FileOutputManager.resolveOutputPath(args.outputFile, args.outputDir, args.outputEnabled, settings)
+      : outputSettings.outputFile;
 
     if (!resolvedPath) {
       return;

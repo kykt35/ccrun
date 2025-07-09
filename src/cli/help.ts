@@ -33,10 +33,11 @@ It supports direct prompts, file input, session continuation, and tool filtering
   --disallowedTools <tools>   Comma-separated list of disallowed tools
   --permission-mode <mode>    Set permission mode (default|plan|acceptEdits|bypassPermissions)
   -s, --settingFile <file>    Specify custom settings file path
-  -o, --output <file>         Output file path for results
+  -o [file]                   Output file path (with file) or enable auto-output (without file)
+  --output-file <file>        Output file path for results (enables output)
   --output-dir <directory>    Output directory for results (default: ./tmp/ccrun/results)
   --output-format <format>    Output format: json or text (default: json)
-  --no-output                 Disable file output (console only)
+  --output                    Enable file output with auto-generated filename
   -h, --help                  Show this help message
 
 Available Tools:
@@ -70,10 +71,10 @@ Available Tools:
   ccrun -i "Help me refactor this code" --permission-mode acceptEdits
   ccrun -i "Plan out the implementation" --permission-mode plan
 
-  # Output options
+  # Output options (output disabled by default)
   ccrun -i "Analyze the code" -o analysis.json
-  ccrun -i "Debug this issue" --output-dir ./results --output-format text
-  ccrun -i "Quick check" --no-output
+  ccrun -i "Debug this issue" -o --output-dir ./results --output-format text
+  ccrun -i "Quick check"  # No output (default behavior)
 
   # Custom settings file
   ccrun -i "Analyze the code" --settingFile ./my-settings.json

@@ -126,16 +126,32 @@ describe('ArgumentParser', () => {
       expect(args.settingsFile).toBe('./config/settings.json');
     });
 
-    it('should parse output file with -o flag', () => {
-      const args = ArgumentParser.parseArgs(['-i', 'test', '-o', 'output.json']);
+    it('should parse -o flag as auto-output (no file path accepted)', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '-o']);
       
-      expect(args.output).toBe('output.json');
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
     });
 
-    it('should parse output file with --output flag', () => {
-      const args = ArgumentParser.parseArgs(['-i', 'test', '--output', 'result.json']);
+    it('should parse output file with --output-file flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--output-file', 'output.json']);
       
-      expect(args.output).toBe('result.json');
+      expect(args.outputFile).toBe('output.json');
+    });
+
+    it('should parse -o without file path as auto-output', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '-o']);
+      
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
+    });
+
+    it('should parse -o followed by another flag as auto-output', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '-o', '--output-format', 'text']);
+      
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
+      expect(args.outputFormat).toBe('text');
     });
 
     it('should parse output directory', () => {
@@ -162,23 +178,52 @@ describe('ArgumentParser', () => {
       expect(args.outputFormat).toBeUndefined();
     });
 
-    it('should parse no-output flag', () => {
-      const args = ArgumentParser.parseArgs(['-i', 'test', '--no-output']);
+    it('should parse --output flag without file path as auto-output', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--output']);
       
-      expect(args.noOutput).toBe(true);
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
+    });
+
+    it('should parse --output flag as auto-output (no file path accepted)', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--output']);
+      
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
+    });
+
+    it('should parse --output-enabled flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--output-enabled']);
+      
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
     });
 
     it('should parse all output options together', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'test',
-        '-o', 'output.txt',
+        '--output-file', 'output.txt',
         '--output-dir', './results',
         '--output-format', 'text'
       ]);
       
-      expect(args.output).toBe('output.txt');
+      expect(args.outputFile).toBe('output.txt');
       expect(args.outputDir).toBe('./results');
       expect(args.outputFormat).toBe('text');
+    });
+
+    it('should parse --output-enabled with other output options', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'test',
+        '--output-enabled',
+        '--output-dir', './results',
+        '--output-format', 'json'
+      ]);
+      
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputDir).toBe('./results');
+      expect(args.outputFormat).toBe('json');
+      expect(args.outputFile).toBeUndefined();
     });
   });
 
@@ -271,13 +316,13 @@ describe('ArgumentParser', () => {
     });
 
     it('should validate args with valid output file', () => {
-      const args: CLIArgs = { prompt: 'test', output: 'output.json' };
+      const args: CLIArgs = { prompt: 'test', outputFile: 'output.json' };
       
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
 
     it('should reject empty output file path', () => {
-      const args: CLIArgs = { prompt: 'test', output: '' };
+      const args: CLIArgs = { prompt: 'test', outputFile: '' };
       
       expect(ArgumentParser.validateArgs(args)).toBe(false);
     });
@@ -312,22 +357,28 @@ describe('ArgumentParser', () => {
       expect(ArgumentParser.validateArgs(args)).toBe(false);
     });
 
-    it('should validate args with noOutput flag', () => {
-      const args: CLIArgs = { prompt: 'test', noOutput: true };
+    it('should validate args with outputEnabled flag', () => {
+      const args: CLIArgs = { prompt: 'test', outputEnabled: true };
       
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
 
-    it('should reject conflicting noOutput and output options', () => {
-      const args: CLIArgs = { prompt: 'test', noOutput: true, output: 'output.json' };
+    it('should validate outputEnabled with output options', () => {
+      const args: CLIArgs = { prompt: 'test', outputEnabled: true, outputFile: 'output.json' };
       
-      expect(ArgumentParser.validateArgs(args)).toBe(false);
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should validate --output-enabled flag alone', () => {
+      const args: CLIArgs = { prompt: 'test', outputEnabled: true };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
 
     it('should validate all output options together (without conflict)', () => {
       const args: CLIArgs = { 
         prompt: 'test',
-        output: 'output.json',
+        outputFile: 'output.json',
         outputDir: './results',
         outputFormat: 'json'
       };
@@ -398,7 +449,7 @@ describe('ArgumentParser', () => {
     });
 
     it('should return error for empty output file path', () => {
-      const args: CLIArgs = { prompt: 'test', output: '   ' };
+      const args: CLIArgs = { prompt: 'test', outputFile: '   ' };
       
       const error = ArgumentParser.getValidationError(args);
       expect(error).toBe('Output file path must be a non-empty string');
@@ -411,17 +462,17 @@ describe('ArgumentParser', () => {
       expect(error).toBe('Output directory path must be a non-empty string');
     });
 
-    it('should return error for conflicting noOutput and output options', () => {
-      const args: CLIArgs = { prompt: 'test', noOutput: true, output: 'output.json' };
+    it('should return null for outputEnabled with output options', () => {
+      const args: CLIArgs = { prompt: 'test', outputEnabled: true, outputFile: 'output.json' };
       
       const error = ArgumentParser.getValidationError(args);
-      expect(error).toBe('Cannot use both --no-output and --output options');
+      expect(error).toBeNull();
     });
 
     it('should return null for valid output options', () => {
       const args: CLIArgs = { 
         prompt: 'test',
-        output: 'output.json',
+        outputFile: 'output.json',
         outputDir: './results',
         outputFormat: 'json'
       };
@@ -429,8 +480,8 @@ describe('ArgumentParser', () => {
       expect(ArgumentParser.getValidationError(args)).toBeNull();
     });
 
-    it('should return null for noOutput flag without conflicts', () => {
-      const args: CLIArgs = { prompt: 'test', noOutput: true };
+    it('should return null for outputEnabled flag', () => {
+      const args: CLIArgs = { prompt: 'test', outputEnabled: true };
       
       expect(ArgumentParser.getValidationError(args)).toBeNull();
     });

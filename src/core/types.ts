@@ -21,10 +21,11 @@ export interface Settings {
     deny?: string[];
   };
   maxTurns?: number;
+  outputFile?: string;
+  outputFormat?: 'json' | 'text';
   output?: {
     enabled?: boolean;
     directory?: string;
-    format?: 'json' | 'text';
     filename?: {
       prefix?: string;
       suffix?: string;

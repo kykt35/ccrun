@@ -45,10 +45,11 @@ npm run exec -- -i "こんにちは"
 - `--allowedTools <tools>`: 許可するツールをカンマ区切りで指定
 - `--disallowedTools <tools>`: 禁止するツールをカンマ区切りで指定
 - `--settingFile <filePath>`, `-s <filePath>`: 設定ファイルを指定
-- `-o, --output <file>`: 出力ファイルパス指定
+- `-o, --output`: 自動生成ファイル名で出力を有効化
+- `--output-file <file>`: 出力ファイルパス指定（明示的）
+- `--output-enabled`: 出力を有効化（`--output`と同じ）
 - `--output-dir <directory>`: 出力ディレクトリ指定（デフォルト: ./tmp/ccrun/results）
 - `--output-format <format>`: 出力形式（json|text、デフォルト: json）
-- `--no-output`: ファイル出力無効化（コンソール出力のみ）
 - `-h, --help`: ヘルプを表示
 
 ### 使用例
@@ -100,26 +101,33 @@ ccrun -i "プロジェクトを分析してください" -s ../shared-settings.j
 ```
 
 #### ファイル出力機能
-実行結果をファイルに出力します。
+
+実行結果をファイルに出力します。**デフォルトでは出力は無効**で、明示的に有効化する必要があります。
 
 ```bash
-# デフォルト保存（./tmp/ccrun/results/yyyyMMddHHmmss.json）
-ccrun -i "コードを分析して"
+# 出力を有効化（自動生成ファイル名: ./tmp/ccrun/results/yyyyMMddHHmmss.json）
+ccrun -i "コードを分析して" --output
+
+# 短縮形でも同様
+ccrun -i "コードを分析して" -o
 
 # 指定ファイルに保存
-ccrun -i "コードを分析して" -o results.json
+ccrun -i "コードを分析して" --output-file results.json
+
+# 明示的な出力ファイル指定
+ccrun -i "コードを分析して" --output-file results.json
 
 # カスタムディレクトリに保存
-ccrun -i "コードを分析して" --output-dir ./output
+ccrun -i "コードを分析して" --output --output-dir ./output
 
 # テキスト形式で保存
 ccrun -i "バグを修正して" -o results.txt --output-format text
 
-# 出力無効化（コンソール出力のみ）
-ccrun -i "コードを分析して" --no-output
+# 出力無効化（デフォルト動作、コンソール出力のみ）
+ccrun -i "コードを分析して"
 
 # 複数のオプションを組み合わせ
-ccrun -f input.txt --output-dir ./results --output-format json
+ccrun -f input.txt --output --output-dir ./results --output-format json
 ```
 
 #### その他のオプション
@@ -166,10 +174,11 @@ ccrun -i "こんにちは"
     "deny": ["Edit"]
   },
   "maxTurns": 25,
+  "outputFile": "./results/output.json",
+  "outputFormat": "json",
   "output": {
     "enabled": true,
     "directory": "./results",
-    "format": "json",
     "filename": {
       "prefix": "ccrun-",
       "suffix": "-result"
@@ -194,6 +203,8 @@ ccrun -i "プロンプト" --settingFile ./custom-settings.json
 
 ### 設定ファイルの形式
 
+#### 例1: outputFileを使用した直接ファイル指定
+
 ```json
 {
   "permissions": {
@@ -201,10 +212,24 @@ ccrun -i "プロンプト" --settingFile ./custom-settings.json
     "deny": ["Bash", "WebFetch"]
   },
   "maxTurns": 50,
+  "outputFile": "./project-results/analysis.txt",
+  "outputFormat": "text"
+}
+```
+
+#### 例2: outputでの自動生成設定
+
+```json
+{
+  "permissions": {
+    "allow": ["Read", "Write", "Edit"],
+    "deny": ["Bash", "WebFetch"]
+  },
+  "maxTurns": 50,
+  "outputFormat": "json",
   "output": {
     "enabled": true,
     "directory": "./project-results",
-    "format": "text",
     "filename": {
       "prefix": "analysis-",
       "suffix": "-report"
@@ -226,10 +251,11 @@ ccrun -i "プロンプト" --settingFile ./custom-settings.json
     "deny": ["Bash", "WebFetch", "WebSearch"]
   },
   "maxTurns": 30,
+  "outputFile": "./tmp/output.json",
+  "outputFormat": "json",
   "output": {
     "enabled": true,
     "directory": "./tmp/test",
-    "format": "json",
     "filename": {
       "prefix": "test",
       "suffix": "suf"
@@ -270,7 +296,7 @@ Claude Code SDKの標準形式（SDKResultMessage）に準拠した構造化デ�
     "is_error": false,
     "num_turns": 3,
     "result": "実行結果の内容",
-    "session_id": "sess-abc123",
+    "session_id": "session-abc123",
     "total_cost_usd": 0.0042,
     "usage": {
       "input_tokens": 1250,
@@ -289,6 +315,7 @@ Claude Code SDKの標準形式（SDKResultMessage）に準拠した構造化デ�
 ```
 
 #### テキスト形式
+
 人間が読みやすい日本語レポート形式です。
 
 ```text
@@ -297,7 +324,7 @@ CCRun 実行結果レポート
 ==========================================
 
 実行時刻: 2025-07-09 12:34:56
-セッションID: sess-abc123
+セッションID: session-abc123
 ステータス: 成功 (success)
 
 パフォーマンス情報:
@@ -320,18 +347,24 @@ CCRun 実行結果レポート
 ### 出力設定
 
 #### 設定項目
-- **output.enabled**: ファイル出力の有効/無効（`--no-output`に対応）
-- **output.directory**: デフォルト出力ディレクトリ（`--output-dir`に対応）
-- **output.format**: デフォルト出力形式（`--output-format`に対応）
-- **output.filename.prefix**: ファイル名のプレフィックス
-- **output.filename.suffix**: ファイル名のサフィックス
+
+- **outputFile**: 出力ファイルパス（設定されていると自動的に出力が有効化）
+- **outputFormat**: 出力形式（`json` または `text`）
+- **output.enabled**: ファイル出力の有効/無効
+- **output.directory**: 自動生成時の出力ディレクトリ
+- **output.filename.prefix**: 自動生成時のファイル名プレフィックス
+- **output.filename.suffix**: 自動生成時のファイル名サフィックス
 
 #### 優先順位
-1. **最優先**: CLI引数（`-o`, `--output-dir`, `--output-format`, `--no-output`）
-2. **次優先**: 設定ファイル
-3. **最後**: デフォルト値
+
+1. **最優先**: CLI引数（`--output-file`, `-o`, `--output`, `--output-enabled`）
+2. **次優先**: 設定ファイルの `outputFile`
+3. **その次**: 設定ファイルの `output.enabled: true`（自動生成）
+4. **最後**: デフォルト値（出力無効）
 
 ### デフォルト動作
+
+- **出力有効化**: デフォルトでは無効（明示的に有効化が必要）
 - **出力先**: `./tmp/ccrun/results/`
 - **ファイル名**: `yyyyMMddHHmmss.json`形式（実行開始時刻）
 - **出力形式**: JSON
@@ -348,4 +381,4 @@ CCRun 実行結果レポート
 
 ## ライセンス
 
-MIT 
+MIT

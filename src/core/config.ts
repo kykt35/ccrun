@@ -102,34 +102,48 @@ export class ConfigManager {
     cliOutput?: string,
     _cliOutputDir?: string,
     cliOutputFormat?: 'json' | 'text',
-    cliNoOutput?: boolean,
+    cliOutputEnabled?: boolean,
     settings?: Settings | null
   ): {
-    outputPath: string | null;
+    outputFile: string | null;
     outputFormat: 'json' | 'text';
   } {
-    // If --no-output is specified in CLI or settings, disable output
-    if (cliNoOutput || (settings?.output?.enabled === false)) {
+    // Determine output format (CLI takes precedence over settings root level)
+    const outputFormat = cliOutputFormat || settings?.outputFormat || 'json';
+
+    // Output is disabled by default. Only enable if:
+    // 1. --output flag is provided (with file path)
+    // 2. --output flag is provided (without file path)
+    // 3. Settings file has output enabled
+    // 4. Settings file has outputFile specified
+    const outputEnabled = !!(cliOutput || cliOutputEnabled || settings?.output?.enabled || settings?.outputFile);
+
+    if (!outputEnabled) {
       return {
-        outputPath: null,
-        outputFormat: cliOutputFormat || settings?.output?.format || 'json'
+        outputFile: null,
+        outputFormat
       };
     }
-
-    // Determine output format (CLI takes precedence)
-    const outputFormat = cliOutputFormat || settings?.output?.format || 'json';
 
     // If specific output file is provided via CLI
     if (cliOutput) {
       return {
-        outputPath: cliOutput,
+        outputFile: cliOutput,
+        outputFormat
+      };
+    }
+
+    // If specific output file is provided via settings
+    if (settings?.outputFile) {
+      return {
+        outputFile: settings.outputFile,
         outputFormat
       };
     }
 
     // Use default output path generation with output directory
     return {
-      outputPath: 'auto-generate', // This will be handled by FileOutputManager
+      outputFile: 'auto-generate', // This will be handled by FileOutputManager
       outputFormat
     };
   }
