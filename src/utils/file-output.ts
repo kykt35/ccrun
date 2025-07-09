@@ -43,7 +43,7 @@ export class FileOutputManager {
       .replace(/\..+/, '')
       .replace('T', '');
     
-    const dir = outputDir || this.getDefaultOutputDirectory();
+    const dir = outputDir || settings?.output?.directory || this.getDefaultOutputDirectory();
     const format = settings?.output?.format || 'json';
     const prefix = settings?.output?.filename?.prefix || '';
     const suffix = settings?.output?.filename?.suffix || '';

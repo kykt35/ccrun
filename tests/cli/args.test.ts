@@ -125,6 +125,61 @@ describe('ArgumentParser', () => {
       
       expect(args.settingsFile).toBe('./config/settings.json');
     });
+
+    it('should parse output file with -o flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '-o', 'output.json']);
+      
+      expect(args.output).toBe('output.json');
+    });
+
+    it('should parse output file with --output flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--output', 'result.json']);
+      
+      expect(args.output).toBe('result.json');
+    });
+
+    it('should parse output directory', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--output-dir', './results']);
+      
+      expect(args.outputDir).toBe('./results');
+    });
+
+    it('should parse output format json', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'json']);
+      
+      expect(args.outputFormat).toBe('json');
+    });
+
+    it('should parse output format text', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'text']);
+      
+      expect(args.outputFormat).toBe('text');
+    });
+
+    it('should ignore invalid output format', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'invalid']);
+      
+      expect(args.outputFormat).toBeUndefined();
+    });
+
+    it('should parse no-output flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--no-output']);
+      
+      expect(args.noOutput).toBe(true);
+    });
+
+    it('should parse all output options together', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'test',
+        '-o', 'output.txt',
+        '--output-dir', './results',
+        '--output-format', 'text'
+      ]);
+      
+      expect(args.output).toBe('output.txt');
+      expect(args.outputDir).toBe('./results');
+      expect(args.outputFormat).toBe('text');
+    });
   });
 
   describe('validateArgs', () => {
@@ -214,6 +269,71 @@ describe('ArgumentParser', () => {
       
       expect(ArgumentParser.validateArgs(args)).toBe(false);
     });
+
+    it('should validate args with valid output file', () => {
+      const args: CLIArgs = { prompt: 'test', output: 'output.json' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should reject empty output file path', () => {
+      const args: CLIArgs = { prompt: 'test', output: '' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should validate args with valid output directory', () => {
+      const args: CLIArgs = { prompt: 'test', outputDir: './results' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should reject empty output directory path', () => {
+      const args: CLIArgs = { prompt: 'test', outputDir: '   ' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should validate valid output format json', () => {
+      const args: CLIArgs = { prompt: 'test', outputFormat: 'json' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should validate valid output format text', () => {
+      const args: CLIArgs = { prompt: 'test', outputFormat: 'text' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should reject invalid output format', () => {
+      const args: CLIArgs = { prompt: 'test', outputFormat: 'invalid' as any };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should validate args with noOutput flag', () => {
+      const args: CLIArgs = { prompt: 'test', noOutput: true };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should reject conflicting noOutput and output options', () => {
+      const args: CLIArgs = { prompt: 'test', noOutput: true, output: 'output.json' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should validate all output options together (without conflict)', () => {
+      const args: CLIArgs = { 
+        prompt: 'test',
+        output: 'output.json',
+        outputDir: './results',
+        outputFormat: 'json'
+      };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
   });
 
   describe('getValidationError', () => {
@@ -266,6 +386,51 @@ describe('ArgumentParser', () => {
 
     it('should return null for valid settings file path', () => {
       const args: CLIArgs = { prompt: 'test', settingsFile: 'custom-settings.json' };
+      
+      expect(ArgumentParser.getValidationError(args)).toBeNull();
+    });
+
+    it('should return error for invalid output format', () => {
+      const args: CLIArgs = { prompt: 'test', outputFormat: 'invalid' as any };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Output format must be either "json" or "text"');
+    });
+
+    it('should return error for empty output file path', () => {
+      const args: CLIArgs = { prompt: 'test', output: '   ' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Output file path must be a non-empty string');
+    });
+
+    it('should return error for empty output directory path', () => {
+      const args: CLIArgs = { prompt: 'test', outputDir: '' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Output directory path must be a non-empty string');
+    });
+
+    it('should return error for conflicting noOutput and output options', () => {
+      const args: CLIArgs = { prompt: 'test', noOutput: true, output: 'output.json' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Cannot use both --no-output and --output options');
+    });
+
+    it('should return null for valid output options', () => {
+      const args: CLIArgs = { 
+        prompt: 'test',
+        output: 'output.json',
+        outputDir: './results',
+        outputFormat: 'json'
+      };
+      
+      expect(ArgumentParser.getValidationError(args)).toBeNull();
+    });
+
+    it('should return null for noOutput flag without conflicts', () => {
+      const args: CLIArgs = { prompt: 'test', noOutput: true };
       
       expect(ArgumentParser.getValidationError(args)).toBeNull();
     });
