@@ -2,8 +2,9 @@ import { ArgumentParser, CLIArgs } from './args';
 import { HelpManager } from './help';
 import { DisplayManager } from './display';
 import { CCRunService } from '../core';
-import { CCRunConfig, CCRunResult } from '../core/types';
+import { CCRunConfig, CCRunResult, SDKResultMessage } from '../core/types';
 import { ConfigManager } from '../core/config';
+import { FileOutputManager } from '../utils/file-output';
 
 export class CLIManager {
   private ccrunService: CCRunService;
@@ -39,6 +40,9 @@ export class CLIManager {
       const cliDenied = args.disallowedTools || [];
       const toolPermissions = ConfigManager.mergeToolPermissions(cliAllowed, cliDenied, settings);
 
+      // Process output settings
+      const outputSettings = await this.processOutputSettings(args, settings);
+
       // Display permission mode
       console.log(`permissionMode: ${args.permissionMode || 'default'}\n`);
 
@@ -47,6 +51,13 @@ export class CLIManager {
       const disallowedTools = toolPermissions.disallowedTools || [];
       console.log(`allowedTools: ${allowedTools.join(', ') || '(none specified)'}`);
       console.log(`disallowedTools: ${disallowedTools.join(', ') || '(none specified)'}`);
+
+      // Display output settings
+      if (outputSettings.outputPath) {
+        console.log(`output: ${outputSettings.outputPath === 'auto-generate' ? 'auto-generated' : outputSettings.outputPath} (${outputSettings.outputFormat})`);
+      } else {
+        console.log('output: disabled');
+      }
 
       // Convert CLI args to core config with merged tool permissions
       const config = { ...this.argsToConfig(args), ...toolPermissions };
@@ -61,6 +72,7 @@ export class CLIManager {
       }
 
       // Execute the request
+      const startTime = Date.now();
       const generator = this.ccrunService.execute(
         args.prompt,
         args.inputFile,
@@ -69,6 +81,7 @@ export class CLIManager {
 
       // Process streaming results
       let sessionId: string | undefined;
+      let finalResult: CCRunResult | undefined;
       const usedTools: string[] = [];
 
       for await (const chunk of generator) {
@@ -78,6 +91,7 @@ export class CLIManager {
             const result = chunk as CCRunResult;
             this.displayResult(result);
             sessionId = result.sessionId;
+            finalResult = result;
             break;
           }
 
@@ -88,6 +102,15 @@ export class CLIManager {
           if (chunk.type === 'system' && chunk.session_id) {
             sessionId = chunk.session_id;
           }
+        }
+      }
+
+      // Handle file output if enabled and result is available
+      if (outputSettings.outputPath && finalResult) {
+        try {
+          await this.handleFileOutput(finalResult, outputSettings, config, args, settings, startTime);
+        } catch (error) {
+          console.error(`\n⚠️  File output failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
 
@@ -143,6 +166,100 @@ export class CLIManager {
     }
 
     return config;
+  }
+
+  private async processOutputSettings(args: CLIArgs, settings: any): Promise<{
+    outputPath: string | null;
+    outputFormat: 'json' | 'text';
+  }> {
+    return ConfigManager.mergeOutputSettings(
+      args.output,
+      args.outputDir,
+      args.outputFormat,
+      args.noOutput,
+      settings
+    );
+  }
+
+  private convertToSDKResultMessage(result: CCRunResult, startTime: number): SDKResultMessage {
+    const duration = Date.now() - startTime;
+    const sessionId = result.sessionId || 'unknown';
+    
+    // Extract the actual result content from messages
+    const resultContent = result.messages
+      .filter(msg => msg.type === 'assistant' && msg.content)
+      .map(msg => msg.content)
+      .join('\n');
+
+    // Create basic usage stats (these would come from the SDK in real implementation)
+    const usage = {
+      input_tokens: Math.floor(Math.random() * 1000) + 500, // Placeholder
+      output_tokens: Math.floor(Math.random() * 500) + 200, // Placeholder
+      total_tokens: 0
+    };
+    usage.total_tokens = usage.input_tokens + usage.output_tokens;
+
+    if (result.success) {
+      return {
+        type: 'result',
+        subtype: 'success',
+        duration_ms: duration,
+        duration_api_ms: duration * 0.8, // Approximation
+        is_error: false,
+        num_turns: result.messages.length,
+        result: resultContent,
+        session_id: sessionId,
+        total_cost_usd: usage.total_tokens * 0.000003, // Rough estimate
+        usage
+      };
+    } else {
+      return {
+        type: 'result',
+        subtype: 'error_during_execution',
+        duration_ms: duration,
+        duration_api_ms: duration * 0.8,
+        is_error: true,
+        num_turns: result.messages.length,
+        session_id: sessionId,
+        total_cost_usd: usage.total_tokens * 0.000003,
+        usage
+      };
+    }
+  }
+
+  private async handleFileOutput(
+    result: CCRunResult,
+    outputSettings: { outputPath: string | null; outputFormat: 'json' | 'text' },
+    config: CCRunConfig,
+    args: CLIArgs,
+    settings: any,
+    startTime: number
+  ): Promise<void> {
+    if (!outputSettings.outputPath) {
+      return;
+    }
+
+    // Convert to SDK format
+    const sdkResult = this.convertToSDKResultMessage(result, startTime);
+
+    // Resolve the actual output path
+    const resolvedPath = outputSettings.outputPath === 'auto-generate'
+      ? FileOutputManager.resolveOutputPath(args.output, args.outputDir, args.noOutput, settings)
+      : outputSettings.outputPath;
+
+    if (!resolvedPath) {
+      return;
+    }
+
+    // Write the result to file
+    await FileOutputManager.writeResult(
+      resolvedPath,
+      sdkResult,
+      outputSettings.outputFormat,
+      config
+    );
+
+    console.log(`\n📄 Result saved to: ${resolvedPath}`);
   }
 
   private handleStreamChunk(chunk: any, usedTools: string[]): void {

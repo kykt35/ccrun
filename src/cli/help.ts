@@ -33,6 +33,10 @@ It supports direct prompts, file input, session continuation, and tool filtering
   --disallowedTools <tools>   Comma-separated list of disallowed tools
   --permission-mode <mode>    Set permission mode (default|plan|acceptEdits|bypassPermissions)
   -s, --settingFile <file>    Specify custom settings file path
+  -o, --output <file>         Output file path for results
+  --output-dir <directory>    Output directory for results (default: ./tmp/ccrun/results)
+  --output-format <format>    Output format: json or text (default: json)
+  --no-output                 Disable file output (console only)
   -h, --help                  Show this help message
 
 Available Tools:
@@ -66,12 +70,17 @@ Available Tools:
   ccrun -i "Help me refactor this code" --permission-mode acceptEdits
   ccrun -i "Plan out the implementation" --permission-mode plan
 
+  # Output options
+  ccrun -i "Analyze the code" -o analysis.json
+  ccrun -i "Debug this issue" --output-dir ./results --output-format text
+  ccrun -i "Quick check" --no-output
+
   # Custom settings file
   ccrun -i "Analyze the code" --settingFile ./my-settings.json
   ccrun -i "Write tests" -s ../shared-settings.json
 
   # Multiple options
-  ccrun -f requirements.txt --max-turns 10 --allowedTools "Read,Write,Edit"`;
+  ccrun -f requirements.txt --max-turns 10 --allowedTools "Read,Write,Edit" -o results.json`;
   }
 
   static generateToolsHelp(): string {
