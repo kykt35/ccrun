@@ -75,7 +75,6 @@ describe('FileOutputManager', () => {
       
       expect(parsed.result).toEqual(mockResult);
       expect(parsed.metadata).toHaveProperty('timestamp');
-      expect(parsed.metadata).toHaveProperty('version');
       expect(parsed.metadata).toHaveProperty('config');
     });
 
@@ -89,7 +88,7 @@ describe('FileOutputManager', () => {
       expect(content).toContain('CCRun 実行結果レポート');
       expect(content).toContain('test-session-123');
       expect(content).toContain('Test result content');
-      expect(content).toContain('実行時間: 1,000ms');
+      expect(content).toContain('実行時間: 1000ms');
       expect(content).toContain('入力トークン: 100');
     });
 

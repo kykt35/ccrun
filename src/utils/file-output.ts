@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import { join, dirname, isAbsolute } from 'path';
+import path, { join, dirname, isAbsolute } from 'path';
 import { Settings, SDKResultMessage, ExtendedOutputData, CCRunConfig } from '../core/types';
 
 export class FileOutputManager {
@@ -10,19 +10,22 @@ export class FileOutputManager {
     config?: CCRunConfig
   ): Promise<void> {
     await this.ensureDirectoryExists(filePath);
-    
+
     if (format === 'json') {
       const outputData: ExtendedOutputData = {
         result,
         metadata: {
           timestamp: new Date().toISOString(),
-          version: '1.0.0',
           config: config || {}
         }
       };
-      await this.writeJSON(filePath, outputData);
+      const ext = path.extname(filePath);
+      const jsonFilePath = ext === '.json' ? filePath : filePath.replace(ext, '.json');
+      await this.writeJSON(jsonFilePath, outputData);
     } else {
-      await this.writeText(filePath, result);
+      const ext = path.extname(filePath);
+      const textFilePath = ext === '.txt' ? filePath : filePath.replace(ext, '.txt');
+      await this.writeText(textFilePath, result);
     }
   }
 
@@ -42,21 +45,21 @@ export class FileOutputManager {
       .replace(/[-:]/g, '')
       .replace(/\..+/, '')
       .replace('T', '');
-    
-    const dir = outputDir || 
-      (typeof settings?.output?.directory === 'string' ? settings.output.directory : null) || 
+
+    const dir = outputDir ||
+      (typeof settings?.output?.directory === 'string' ? settings.output.directory : null) ||
       this.getDefaultOutputDirectory();
-    const format = (settings?.output?.format === 'json' || settings?.output?.format === 'text') ? 
+    const format = (settings?.output?.format === 'json' || settings?.output?.format === 'text') ?
       settings.output.format : 'json';
-    const prefix = (typeof settings?.output?.filename?.prefix === 'string') ? 
+    const prefix = (typeof settings?.output?.filename?.prefix === 'string') ?
       settings.output.filename.prefix : '';
-    const suffix = (typeof settings?.output?.filename?.suffix === 'string') ? 
+    const suffix = (typeof settings?.output?.filename?.suffix === 'string') ?
       settings.output.filename.suffix : '';
-    
+
     let filename = timestamp;
     if (prefix) filename = prefix + filename;
     if (suffix) filename = filename + suffix;
-    
+
     return join(dir, `${filename}.${format}`);
   }
 
@@ -74,19 +77,19 @@ export class FileOutputManager {
     if (noOutput || (settings?.output?.enabled === false)) {
       return null;
     }
-    
+
     if (outputFile) {
       // -o option specified
       if (isAbsolute(outputFile)) {
         return outputFile;
       }
       // Relative path specified - consider output-dir
-      const dir = outputDir || 
-        (typeof settings?.output?.directory === 'string' ? settings.output.directory : null) || 
+      const dir = outputDir ||
+        (typeof settings?.output?.directory === 'string' ? settings.output.directory : null) ||
         process.cwd();
       return join(dir, outputFile);
     }
-    
+
     // -o option omitted - use default name
     return this.generateDefaultOutputPath(outputDir, settings);
   }
@@ -103,17 +106,17 @@ export class FileOutputManager {
   private static formatSDKResultAsText(result: SDKResultMessage): string {
     const timestamp = new Date().toLocaleString();
     const status = result.is_error ? 'エラー' : '成功';
-    const subtype = result.subtype === 'success' ? 'success' : 
-                   result.subtype === 'error_max_turns' ? 'error_max_turns' : 
+    const subtype = result.subtype === 'success' ? 'success' :
+                   result.subtype === 'error_max_turns' ? 'error_max_turns' :
                    'error_during_execution';
-    
+
     // Get result content based on subtype
-    const resultContent = result.subtype === 'success' && 'result' in result 
-      ? result.result 
-      : result.subtype === 'error_max_turns' 
-        ? 'Maximum number of turns exceeded' 
+    const resultContent = result.subtype === 'success' && 'result' in result
+      ? result.result
+      : result.subtype === 'error_max_turns'
+        ? 'Maximum number of turns exceeded'
         : 'Error occurred during execution';
-    
+
     const sections = [
       '==========================================',
       'CCRun 実行結果レポート',
@@ -124,22 +127,22 @@ export class FileOutputManager {
       `ステータス: ${status} (${subtype})`,
       '',
       'パフォーマンス情報:',
-      `  実行時間: ${result.duration_ms.toLocaleString()}ms`,
-      `  API時間: ${result.duration_api_ms.toLocaleString()}ms`,
+      `  実行時間: ${result.duration_ms}ms`,
+      `  API時間: ${result.duration_api_ms}ms`,
       `  ターン数: ${result.num_turns}`,
       `  推定コスト: $${result.total_cost_usd.toFixed(4)}`,
       '',
       'トークン使用量:',
-      `  入力トークン: ${result.usage.input_tokens.toLocaleString()}`,
-      `  出力トークン: ${result.usage.output_tokens.toLocaleString()}`,
-      `  合計トークン: ${result.usage.total_tokens.toLocaleString()}`,
+      `  入力トークン: ${result.usage.input_tokens}`,
+      `  出力トークン: ${result.usage.output_tokens}`,
+      `  合計トークン: ${result.usage.total_tokens}`,
       '',
       '結果:',
       resultContent,
       '',
       '=========================================='
     ];
-    
+
     return sections.join('\n');
   }
 }

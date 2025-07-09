@@ -26,7 +26,6 @@ export interface Settings {
     directory?: string;
     format?: 'json' | 'text';
     filename?: {
-      useTimestamp?: boolean;
       prefix?: string;
       suffix?: string;
     };
@@ -100,8 +99,6 @@ export interface ExtendedOutputData {
   result: SDKResultMessage;
   metadata: {
     timestamp: string;
-    version: string;
     config: CCRunConfig;
   };
 }
-

@@ -81,16 +81,17 @@ export class CLIManager {
 
       // Process streaming results
       let sessionId: string | undefined;
-      let finalResult: CCRunResult | undefined;
+      let finalResult: SDKResultMessage | undefined;
       const usedTools: string[] = [];
 
       for await (const chunk of generator) {
         if (chunk && typeof chunk === 'object') {
           // Check if this is the final result
-          if ('success' in chunk) {
-            const result = chunk as CCRunResult;
+
+          if (chunk.type === 'result') {
+            const result = chunk as SDKResultMessage;
             this.displayResult(result);
-            sessionId = result.sessionId;
+            sessionId = result.session_id;
             finalResult = result;
             break;
           }
@@ -130,7 +131,7 @@ export class CLIManager {
     }
   }
 
-  displayResult(result: CCRunResult): void {
+  displayResult(result: SDKResultMessage): void {
     console.log(DisplayManager.formatResult(result));
   }
 
@@ -181,54 +182,8 @@ export class CLIManager {
     );
   }
 
-  private convertToSDKResultMessage(result: CCRunResult, startTime: number): SDKResultMessage {
-    const duration = Date.now() - startTime;
-    const sessionId = result.sessionId || 'unknown';
-    
-    // Extract the actual result content from messages
-    const resultContent = result.messages
-      .filter(msg => msg.type === 'assistant' && msg.content)
-      .map(msg => msg.content)
-      .join('\n');
-
-    // Create basic usage stats (these would come from the SDK in real implementation)
-    const usage = {
-      input_tokens: Math.floor(Math.random() * 1000) + 500, // Placeholder
-      output_tokens: Math.floor(Math.random() * 500) + 200, // Placeholder
-      total_tokens: 0
-    };
-    usage.total_tokens = usage.input_tokens + usage.output_tokens;
-
-    if (result.success) {
-      return {
-        type: 'result',
-        subtype: 'success',
-        duration_ms: duration,
-        duration_api_ms: duration * 0.8, // Approximation
-        is_error: false,
-        num_turns: result.messages.length,
-        result: resultContent,
-        session_id: sessionId,
-        total_cost_usd: usage.total_tokens * 0.000003, // Rough estimate
-        usage
-      };
-    } else {
-      return {
-        type: 'result',
-        subtype: 'error_during_execution',
-        duration_ms: duration,
-        duration_api_ms: duration * 0.8,
-        is_error: true,
-        num_turns: result.messages.length,
-        session_id: sessionId,
-        total_cost_usd: usage.total_tokens * 0.000003,
-        usage
-      };
-    }
-  }
-
   private async handleFileOutput(
-    result: CCRunResult,
+    result: SDKResultMessage,
     outputSettings: { outputPath: string | null; outputFormat: 'json' | 'text' },
     config: CCRunConfig,
     args: CLIArgs,
@@ -240,7 +195,7 @@ export class CLIManager {
     }
 
     // Convert to SDK format
-    const sdkResult = this.convertToSDKResultMessage(result, startTime);
+    const sdkResult = result;
 
     // Resolve the actual output path
     const resolvedPath = outputSettings.outputPath === 'auto-generate'

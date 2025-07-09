@@ -302,7 +302,7 @@ describe('File Output Performance Tests', () => {
       expect(duration).toBeLessThan(1000);
       
       const content = await fs.readFile(testFile, 'utf-8');
-      expect(content).toContain('999,999'); // Should format numbers
+      expect(content).toContain('999999'); // Should format numbers without commas in text format
       expect(content).toContain('日本語テスト'); // Should handle unicode
     });
   });

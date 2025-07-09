@@ -1,5 +1,5 @@
 import { DisplayManager } from '../../src/cli/display';
-import { CCRunResult } from '../../src/core/types';
+import { SDKResultMessage } from '../../src/core/types';
 
 describe('DisplayManager', () => {
   describe('formatMessage', () => {
@@ -190,17 +190,21 @@ describe('DisplayManager', () => {
 
   describe('formatResult', () => {
     it('should format successful result', () => {
-      const result: CCRunResult = {
-        success: true,
-        messages: [
-          {
-            id: 'msg1',
-            timestamp: new Date(),
-            type: 'user',
-            content: 'Hello'
-          }
-        ],
-        sessionId: 'session-123'
+      const result: SDKResultMessage = {
+        type: 'result',
+        subtype: 'success',
+        duration_ms: 1000,
+        duration_api_ms: 800,
+        is_error: false,
+        num_turns: 1,
+        result: 'Hello',
+        session_id: 'session-123',
+        total_cost_usd: 0.001,
+        usage: {
+          input_tokens: 100,
+          output_tokens: 50,
+          total_tokens: 150
+        }
       };
 
       const formatted = DisplayManager.formatResult(result);
@@ -211,16 +215,52 @@ describe('DisplayManager', () => {
     });
 
     it('should format failed result', () => {
-      const result: CCRunResult = {
-        success: false,
-        messages: [],
-        error: 'Something went wrong'
+      const result: SDKResultMessage = {
+        type: 'result',
+        subtype: 'error_during_execution',
+        duration_ms: 1000,
+        duration_api_ms: 800,
+        is_error: true,
+        num_turns: 2,
+        session_id: 'session-456',
+        total_cost_usd: 0.002,
+        usage: {
+          input_tokens: 200,
+          output_tokens: 100,
+          total_tokens: 300
+        }
       };
 
       const formatted = DisplayManager.formatResult(result);
 
       expect(formatted).toContain('❌ Task failed');
-      expect(formatted).toContain('Error: Something went wrong');
+      expect(formatted).toContain('Session: session-456');
+      expect(formatted).toContain('Messages: 2 exchanged');
+    });
+
+    it('should format error_max_turns result', () => {
+      const result: SDKResultMessage = {
+        type: 'result',
+        subtype: 'error_max_turns',
+        duration_ms: 1000,
+        duration_api_ms: 800,
+        is_error: true,
+        num_turns: 10,
+        session_id: 'session-789',
+        total_cost_usd: 0.005,
+        usage: {
+          input_tokens: 500,
+          output_tokens: 300,
+          total_tokens: 800
+        }
+      };
+
+      const formatted = DisplayManager.formatResult(result);
+
+      expect(formatted).toContain('❌ Task failed');
+      expect(formatted).toContain('Error: error_max_turns');
+      expect(formatted).toContain('Session: session-789');
+      expect(formatted).toContain('Messages: 10 exchanged');
     });
   });
 
