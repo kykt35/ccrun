@@ -6,8 +6,8 @@ import { CCRunConfig, Settings, ToolPermissions } from './types';
 
 export class ConfigManager {
   private static readonly SETTINGS_PATHS = [
-    ".claude/settings.local.json",
-    ".claude/settings.json"
+    ".ccrun/settings.local.json",
+    ".ccrun/settings.json"
   ];
 
   static async loadSettings(customPath?: string): Promise<Settings | null> {
@@ -96,6 +96,42 @@ export class ConfigManager {
     }
 
     return true;
+  }
+
+  static mergeOutputSettings(
+    cliOutput?: string,
+    _cliOutputDir?: string,
+    cliOutputFormat?: 'json' | 'text',
+    cliNoOutput?: boolean,
+    settings?: Settings | null
+  ): {
+    outputPath: string | null;
+    outputFormat: 'json' | 'text';
+  } {
+    // If --no-output is specified in CLI or settings, disable output
+    if (cliNoOutput || (settings?.output?.enabled === false)) {
+      return {
+        outputPath: null,
+        outputFormat: cliOutputFormat || settings?.output?.format || 'json'
+      };
+    }
+
+    // Determine output format (CLI takes precedence)
+    const outputFormat = cliOutputFormat || settings?.output?.format || 'json';
+
+    // If specific output file is provided via CLI
+    if (cliOutput) {
+      return {
+        outputPath: cliOutput,
+        outputFormat
+      };
+    }
+
+    // Use default output path generation with output directory
+    return {
+      outputPath: 'auto-generate', // This will be handled by FileOutputManager
+      outputFormat
+    };
   }
 
   static async createConfig(

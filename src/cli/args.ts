@@ -11,6 +11,10 @@ export interface CLIArgs {
   help?: boolean;
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
   settingsFile?: string;
+  output?: string;
+  outputDir?: string;
+  outputFormat?: 'json' | 'text';
+  noOutput?: boolean;
 }
 
 export class ArgumentParser {
@@ -83,6 +87,30 @@ export class ArgumentParser {
         }
         consumed.add(i - 1);
         consumed.add(i);
+      } else if (arg === '-o' || arg === '--output') {
+        const nextArg = argv[++i];
+        if (nextArg !== undefined) {
+          args.output = nextArg;
+        }
+        consumed.add(i - 1);
+        consumed.add(i);
+      } else if (arg === '--output-dir') {
+        const nextArg = argv[++i];
+        if (nextArg !== undefined) {
+          args.outputDir = nextArg;
+        }
+        consumed.add(i - 1);
+        consumed.add(i);
+      } else if (arg === '--output-format') {
+        const nextArg = argv[++i];
+        if (nextArg !== undefined && (nextArg === 'json' || nextArg === 'text')) {
+          args.outputFormat = nextArg;
+        }
+        consumed.add(i - 1);
+        consumed.add(i);
+      } else if (arg === '--no-output') {
+        args.noOutput = true;
+        consumed.add(i);
       } else if (arg === '-h' || arg === '--help') {
         args.help = true;
         consumed.add(i);
@@ -136,6 +164,25 @@ export class ArgumentParser {
       return false;
     }
 
+    // Validate output format if provided
+    if (args.outputFormat !== undefined && args.outputFormat !== 'json' && args.outputFormat !== 'text') {
+      return false;
+    }
+
+    // Validate output-related arguments
+    if (args.output !== undefined && (typeof args.output !== 'string' || args.output.trim().length === 0)) {
+      return false;
+    }
+
+    if (args.outputDir !== undefined && (typeof args.outputDir !== 'string' || args.outputDir.trim().length === 0)) {
+      return false;
+    }
+
+    // Check for conflicting options
+    if (args.noOutput && args.output) {
+      return false;
+    }
+
     return true;
   }
 
@@ -162,6 +209,22 @@ export class ArgumentParser {
 
     if (args.continue && args.sessionId) {
       return 'Cannot use both --continue and --resume options';
+    }
+
+    if (args.outputFormat !== undefined && args.outputFormat !== 'json' && args.outputFormat !== 'text') {
+      return 'Output format must be either "json" or "text"';
+    }
+
+    if (args.output !== undefined && (typeof args.output !== 'string' || args.output.trim().length === 0)) {
+      return 'Output file path must be a non-empty string';
+    }
+
+    if (args.outputDir !== undefined && (typeof args.outputDir !== 'string' || args.outputDir.trim().length === 0)) {
+      return 'Output directory path must be a non-empty string';
+    }
+
+    if (args.noOutput && args.output) {
+      return 'Cannot use both --no-output and --output options';
     }
 
     return null;

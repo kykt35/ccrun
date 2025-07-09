@@ -2,8 +2,9 @@ import { ArgumentParser, CLIArgs } from './args';
 import { HelpManager } from './help';
 import { DisplayManager } from './display';
 import { CCRunService } from '../core';
-import { CCRunConfig, CCRunResult } from '../core/types';
+import { CCRunConfig, CCRunResult, SDKResultMessage } from '../core/types';
 import { ConfigManager } from '../core/config';
+import { FileOutputManager } from '../utils/file-output';
 
 export class CLIManager {
   private ccrunService: CCRunService;
@@ -39,6 +40,9 @@ export class CLIManager {
       const cliDenied = args.disallowedTools || [];
       const toolPermissions = ConfigManager.mergeToolPermissions(cliAllowed, cliDenied, settings);
 
+      // Process output settings
+      const outputSettings = await this.processOutputSettings(args, settings);
+
       // Display permission mode
       console.log(`permissionMode: ${args.permissionMode || 'default'}\n`);
 
@@ -47,6 +51,13 @@ export class CLIManager {
       const disallowedTools = toolPermissions.disallowedTools || [];
       console.log(`allowedTools: ${allowedTools.join(', ') || '(none specified)'}`);
       console.log(`disallowedTools: ${disallowedTools.join(', ') || '(none specified)'}`);
+
+      // Display output settings
+      if (outputSettings.outputPath) {
+        console.log(`output: ${outputSettings.outputPath === 'auto-generate' ? 'auto-generated' : outputSettings.outputPath} (${outputSettings.outputFormat})`);
+      } else {
+        console.log('output: disabled');
+      }
 
       // Convert CLI args to core config with merged tool permissions
       const config = { ...this.argsToConfig(args), ...toolPermissions };
@@ -61,6 +72,7 @@ export class CLIManager {
       }
 
       // Execute the request
+      const startTime = Date.now();
       const generator = this.ccrunService.execute(
         args.prompt,
         args.inputFile,
@@ -69,15 +81,18 @@ export class CLIManager {
 
       // Process streaming results
       let sessionId: string | undefined;
+      let finalResult: SDKResultMessage | undefined;
       const usedTools: string[] = [];
 
       for await (const chunk of generator) {
         if (chunk && typeof chunk === 'object') {
           // Check if this is the final result
-          if ('success' in chunk) {
-            const result = chunk as CCRunResult;
+
+          if (chunk.type === 'result') {
+            const result = chunk as SDKResultMessage;
             this.displayResult(result);
-            sessionId = result.sessionId;
+            sessionId = result.session_id;
+            finalResult = result;
             break;
           }
 
@@ -88,6 +103,15 @@ export class CLIManager {
           if (chunk.type === 'system' && chunk.session_id) {
             sessionId = chunk.session_id;
           }
+        }
+      }
+
+      // Handle file output if enabled and result is available
+      if (outputSettings.outputPath && finalResult) {
+        try {
+          await this.handleFileOutput(finalResult, outputSettings, config, args, settings, startTime);
+        } catch (error) {
+          console.error(`\n⚠️  File output failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
 
@@ -107,7 +131,7 @@ export class CLIManager {
     }
   }
 
-  displayResult(result: CCRunResult): void {
+  displayResult(result: SDKResultMessage): void {
     console.log(DisplayManager.formatResult(result));
   }
 
@@ -143,6 +167,54 @@ export class CLIManager {
     }
 
     return config;
+  }
+
+  private async processOutputSettings(args: CLIArgs, settings: any): Promise<{
+    outputPath: string | null;
+    outputFormat: 'json' | 'text';
+  }> {
+    return ConfigManager.mergeOutputSettings(
+      args.output,
+      args.outputDir,
+      args.outputFormat,
+      args.noOutput,
+      settings
+    );
+  }
+
+  private async handleFileOutput(
+    result: SDKResultMessage,
+    outputSettings: { outputPath: string | null; outputFormat: 'json' | 'text' },
+    config: CCRunConfig,
+    args: CLIArgs,
+    settings: any,
+    startTime: number
+  ): Promise<void> {
+    if (!outputSettings.outputPath) {
+      return;
+    }
+
+    // Convert to SDK format
+    const sdkResult = result;
+
+    // Resolve the actual output path
+    const resolvedPath = outputSettings.outputPath === 'auto-generate'
+      ? FileOutputManager.resolveOutputPath(args.output, args.outputDir, args.noOutput, settings)
+      : outputSettings.outputPath;
+
+    if (!resolvedPath) {
+      return;
+    }
+
+    // Write the result to file
+    await FileOutputManager.writeResult(
+      resolvedPath,
+      sdkResult,
+      outputSettings.outputFormat,
+      config
+    );
+
+    console.log(`\n📄 Result saved to: ${resolvedPath}`);
   }
 
   private handleStreamChunk(chunk: any, usedTools: string[]): void {

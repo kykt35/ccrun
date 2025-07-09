@@ -3,5 +3,14 @@
     "allow": ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "LS"],
     "deny": ["Bash", "WebFetch", "WebSearch"]
   },
-  "maxTurns": 30
+  "maxTurns": 30,
+  "output": {
+    "enabled": true,
+    "directory": "./tmp/test",
+    "format": "json",
+    "filename": {
+      "prefix": "test",
+      "suffix": "suf"
+    }
+  }
 }

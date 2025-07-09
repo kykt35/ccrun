@@ -1,3 +1,4 @@
+import { SDKResultMessage } from '@anthropic-ai/claude-code';
 import { CCRunResult, Message } from '../core/types';
 
 export class DisplayManager {
@@ -72,24 +73,24 @@ export class DisplayManager {
     return `🔗 Session ID: ${sessionId}\n💡 Continue with: ccrun --continue or ccrun --resume ${sessionId}`;
   }
 
-  static formatResult(result: CCRunResult): string {
+  static formatResult(result: SDKResultMessage): string {
     const lines: string[] = [];
 
-    if (result.success) {
+    if (result.subtype === 'success') {
       lines.push('✅ Task completed successfully');
     } else {
       lines.push('❌ Task failed');
-      if (result.error) {
-        lines.push(`   Error: ${result.error}`);
+      if (result.subtype === 'error_max_turns') {
+        lines.push(`   Error: ${result.subtype}`);
       }
     }
 
-    if (result.sessionId) {
-      lines.push(`   Session: ${result.sessionId}`);
+    if (result.session_id) {
+      lines.push(`   Session: ${result.session_id}`);
     }
 
-    if (result.messages && result.messages.length > 0) {
-      lines.push(`   Messages: ${result.messages.length} exchanged`);
+    if (result.num_turns && result.num_turns > 0) {
+      lines.push(`   Messages: ${result.num_turns} exchanged`);
     }
 
     lines.push('');

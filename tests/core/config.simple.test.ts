@@ -132,4 +132,153 @@ describe('ConfigManager', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('mergeOutputSettings', () => {
+    it('should return null when CLI noOutput is true', () => {
+      const result = ConfigManager.mergeOutputSettings(
+        'output.json',
+        './results',
+        'json',
+        true,
+        null
+      );
+
+      expect(result.outputPath).toBeNull();
+      expect(result.outputFormat).toBe('json');
+    });
+
+    it('should return null when settings disable output', () => {
+      const settings: Settings = {
+        output: { enabled: false }
+      };
+
+      const result = ConfigManager.mergeOutputSettings(
+        'output.json',
+        './results',
+        'json',
+        false,
+        settings
+      );
+
+      expect(result.outputPath).toBeNull();
+      expect(result.outputFormat).toBe('json');
+    });
+
+    it('should use CLI output file path when provided', () => {
+      const result = ConfigManager.mergeOutputSettings(
+        'output.json',
+        './results',
+        'text',
+        false,
+        null
+      );
+
+      expect(result.outputPath).toBe('output.json');
+      expect(result.outputFormat).toBe('text');
+    });
+
+    it('should use auto-generate when no output file is provided', () => {
+      const result = ConfigManager.mergeOutputSettings(
+        undefined,
+        './results',
+        'json',
+        false,
+        null
+      );
+
+      expect(result.outputPath).toBe('auto-generate');
+      expect(result.outputFormat).toBe('json');
+    });
+
+    it('should prioritize CLI format over settings format', () => {
+      const settings: Settings = {
+        output: { format: 'text' }
+      };
+
+      const result = ConfigManager.mergeOutputSettings(
+        'output.json',
+        './results',
+        'json',
+        false,
+        settings
+      );
+
+      expect(result.outputFormat).toBe('json');
+    });
+
+    it('should use settings format when CLI format is not provided', () => {
+      const settings: Settings = {
+        output: { format: 'text' }
+      };
+
+      const result = ConfigManager.mergeOutputSettings(
+        'output.json',
+        './results',
+        undefined,
+        false,
+        settings
+      );
+
+      expect(result.outputFormat).toBe('text');
+    });
+
+    it('should default to json format when no format is specified', () => {
+      const result = ConfigManager.mergeOutputSettings(
+        'output.json',
+        './results',
+        undefined,
+        false,
+        null
+      );
+
+      expect(result.outputFormat).toBe('json');
+    });
+
+    it('should handle all undefined CLI parameters', () => {
+      const result = ConfigManager.mergeOutputSettings(
+        undefined,
+        undefined,
+        undefined,
+        false,
+        null
+      );
+
+      expect(result.outputPath).toBe('auto-generate');
+      expect(result.outputFormat).toBe('json');
+    });
+
+    it('should respect settings format when CLI noOutput is true', () => {
+      const settings: Settings = {
+        output: { format: 'text' }
+      };
+
+      const result = ConfigManager.mergeOutputSettings(
+        'output.json',
+        './results',
+        undefined,
+        true,
+        settings
+      );
+
+      expect(result.outputPath).toBeNull();
+      expect(result.outputFormat).toBe('text');
+    });
+
+    it('should use CLI format when CLI noOutput is true', () => {
+      const settings: Settings = {
+        output: { format: 'text' }
+      };
+
+      const result = ConfigManager.mergeOutputSettings(
+        'output.json',
+        './results',
+        'json',
+        true,
+        settings
+      );
+
+      expect(result.outputPath).toBeNull();
+      expect(result.outputFormat).toBe('json');
+    });
+  });
 });
