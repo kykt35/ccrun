@@ -130,7 +130,7 @@ ccrun -i "こんにちは"
 
 ### デフォルト設定ファイル
 
-`.claude/settings.json` または `.claude/settings.local.json` に設定を書くことができます：
+`.ccrun/settings.json` または `.ccrun/settings.local.json` に設定を書くことができます：
 
 ```json
 {
