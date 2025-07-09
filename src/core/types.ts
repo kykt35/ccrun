@@ -65,3 +65,43 @@ export interface StreamChunk {
   metadata?: Record<string, any>;
 }
 
+export interface NonNullableUsage {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+}
+
+export type SDKResultMessage =
+  | {
+      type: 'result';
+      subtype: 'success';
+      duration_ms: number;
+      duration_api_ms: number;
+      is_error: boolean;
+      num_turns: number;
+      result: string;
+      session_id: string;
+      total_cost_usd: number;
+      usage: NonNullableUsage;
+    }
+  | {
+      type: 'result';
+      subtype: 'error_max_turns' | 'error_during_execution';
+      duration_ms: number;
+      duration_api_ms: number;
+      is_error: boolean;
+      num_turns: number;
+      session_id: string;
+      total_cost_usd: number;
+      usage: NonNullableUsage;
+    };
+
+export interface ExtendedOutputData {
+  result: SDKResultMessage;
+  metadata: {
+    timestamp: string;
+    version: string;
+    config: CCRunConfig;
+  };
+}
+

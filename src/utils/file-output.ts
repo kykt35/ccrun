@@ -1,39 +1,13 @@
 import { promises as fs } from 'fs';
 import { join, dirname, isAbsolute } from 'path';
-import { Settings } from '../core/types';
-
-export interface SDKResultMessage {
-  type: 'result';
-  subtype: 'success' | 'error_max_turns' | 'error_during_execution';
-  duration_ms: number;
-  duration_api_ms: number;
-  is_error: boolean;
-  num_turns: number;
-  result?: string;
-  session_id: string;
-  total_cost_usd: number;
-  usage: {
-    input_tokens: number;
-    output_tokens: number;
-    total_tokens: number;
-  };
-}
-
-export interface ExtendedOutputData {
-  result: SDKResultMessage;
-  metadata: {
-    timestamp: string;
-    version: string;
-    config: Record<string, any>;
-  };
-}
+import { Settings, SDKResultMessage, ExtendedOutputData, CCRunConfig } from '../core/types';
 
 export class FileOutputManager {
   static async writeResult(
     filePath: string,
     result: SDKResultMessage,
     format: 'json' | 'text' = 'json',
-    metadata?: any
+    config?: CCRunConfig
   ): Promise<void> {
     await this.ensureDirectoryExists(filePath);
     
@@ -43,7 +17,7 @@ export class FileOutputManager {
         metadata: {
           timestamp: new Date().toISOString(),
           version: '1.0.0',
-          config: metadata || {}
+          config: config || {}
         }
       };
       await this.writeJSON(filePath, outputData);
@@ -145,28 +119,39 @@ export class FileOutputManager {
                    result.subtype === 'error_max_turns' ? 'error_max_turns' : 
                    'error_during_execution';
     
-    return `==========================================
-CCRun 実行結果レポート
-==========================================
-
-実行時刻: ${timestamp}
-セッションID: ${result.session_id}
-ステータス: ${status} (${subtype})
-
-パフォーマンス情報:
-  実行時間: ${result.duration_ms.toLocaleString()}ms
-  API時間: ${result.duration_api_ms.toLocaleString()}ms
-  ターン数: ${result.num_turns}
-  推定コスト: $${result.total_cost_usd.toFixed(4)}
-
-トークン使用量:
-  入力トークン: ${result.usage.input_tokens.toLocaleString()}
-  出力トークン: ${result.usage.output_tokens.toLocaleString()}
-  合計トークン: ${result.usage.total_tokens.toLocaleString()}
-
-結果:
-${result.result || 'No result content'}
-
-==========================================`;
+    // Get result content based on subtype
+    const resultContent = result.subtype === 'success' && 'result' in result 
+      ? result.result 
+      : result.subtype === 'error_max_turns' 
+        ? 'Maximum number of turns exceeded' 
+        : 'Error occurred during execution';
+    
+    const sections = [
+      '==========================================',
+      'CCRun 実行結果レポート',
+      '==========================================',
+      '',
+      `実行時刻: ${timestamp}`,
+      `セッションID: ${result.session_id}`,
+      `ステータス: ${status} (${subtype})`,
+      '',
+      'パフォーマンス情報:',
+      `  実行時間: ${result.duration_ms.toLocaleString()}ms`,
+      `  API時間: ${result.duration_api_ms.toLocaleString()}ms`,
+      `  ターン数: ${result.num_turns}`,
+      `  推定コスト: $${result.total_cost_usd.toFixed(4)}`,
+      '',
+      'トークン使用量:',
+      `  入力トークン: ${result.usage.input_tokens.toLocaleString()}`,
+      `  出力トークン: ${result.usage.output_tokens.toLocaleString()}`,
+      `  合計トークン: ${result.usage.total_tokens.toLocaleString()}`,
+      '',
+      '結果:',
+      resultContent,
+      '',
+      '=========================================='
+    ];
+    
+    return sections.join('\n');
   }
 }
