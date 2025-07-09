@@ -21,6 +21,16 @@ export interface Settings {
     deny?: string[];
   };
   maxTurns?: number;
+  output?: {
+    enabled?: boolean;
+    directory?: string;
+    format?: 'json' | 'text';
+    filename?: {
+      useTimestamp?: boolean;
+      prefix?: string;
+      suffix?: string;
+    };
+  };
   [key: string]: any;
 }
 
