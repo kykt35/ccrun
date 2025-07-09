@@ -130,9 +130,9 @@ describe('FileOutputManager', () => {
 
     it('should use settings for format and directory', () => {
       const settings: Settings = {
+        outputFormat: 'text',
         output: {
-          directory: './settings-output',
-          format: 'text'
+          directory: './settings-output'
         }
       };
       
@@ -166,11 +166,11 @@ describe('FileOutputManager', () => {
   });
 
   describe('resolveOutputPath', () => {
-    it('should return null when noOutput is true', () => {
+    it('should return null when output is disabled by default', () => {
       const path = FileOutputManager.resolveOutputPath(
-        'test.json',
+        undefined,
         './output',
-        true
+        false
       );
       
       expect(path).toBeNull();
@@ -182,7 +182,7 @@ describe('FileOutputManager', () => {
       };
       
       const path = FileOutputManager.resolveOutputPath(
-        'test.json',
+        undefined,
         './output',
         false,
         settings
@@ -207,10 +207,11 @@ describe('FileOutputManager', () => {
       expect(path).toMatch(/custom-output\/test\.json$/);
     });
 
-    it('should generate default path when outputFile is not specified', () => {
+    it('should generate default path when outputEnabled is true', () => {
       const path = FileOutputManager.resolveOutputPath(
         undefined,
-        './custom-output'
+        './custom-output',
+        true
       );
       
       expect(path).toMatch(/custom-output\/\d{8}\d{6}\.json$/);

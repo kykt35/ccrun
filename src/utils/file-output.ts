@@ -49,8 +49,8 @@ export class FileOutputManager {
     const dir = outputDir ||
       (typeof settings?.output?.directory === 'string' ? settings.output.directory : null) ||
       this.getDefaultOutputDirectory();
-    const format = (settings?.output?.format === 'json' || settings?.output?.format === 'text') ?
-      settings.output.format : 'json';
+    const format = (settings?.outputFormat === 'json' || settings?.outputFormat === 'text') ?
+      settings.outputFormat : 'json';
     const prefix = (typeof settings?.output?.filename?.prefix === 'string') ?
       settings.output.filename.prefix : '';
     const suffix = (typeof settings?.output?.filename?.suffix === 'string') ?
@@ -70,11 +70,12 @@ export class FileOutputManager {
   static resolveOutputPath(
     outputFile?: string,
     outputDir?: string,
-    noOutput?: boolean,
+    outputEnabled?: boolean,
     settings?: Settings
   ): string | null {
-    // Check if output is disabled
-    if (noOutput || (settings?.output?.enabled === false)) {
+    // Check if output is disabled by default unless enabled
+    const isOutputEnabled = !!(outputFile || outputEnabled || settings?.output?.enabled);
+    if (!isOutputEnabled) {
       return null;
     }
 

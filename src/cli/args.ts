@@ -11,10 +11,10 @@ export interface CLIArgs {
   help?: boolean;
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
   settingsFile?: string;
-  output?: string;
+  outputFile?: string;
   outputDir?: string;
   outputFormat?: 'json' | 'text';
-  noOutput?: boolean;
+  outputEnabled?: boolean;
 }
 
 export class ArgumentParser {
@@ -88,9 +88,13 @@ export class ArgumentParser {
         consumed.add(i - 1);
         consumed.add(i);
       } else if (arg === '-o' || arg === '--output') {
+        // -o always acts as --output (enable output with auto-generated filename)
+        args.outputEnabled = true;
+        consumed.add(i);
+      } else if (arg === '--output-file') {
         const nextArg = argv[++i];
         if (nextArg !== undefined) {
-          args.output = nextArg;
+          args.outputFile = nextArg;
         }
         consumed.add(i - 1);
         consumed.add(i);
@@ -108,8 +112,8 @@ export class ArgumentParser {
         }
         consumed.add(i - 1);
         consumed.add(i);
-      } else if (arg === '--no-output') {
-        args.noOutput = true;
+      } else if (arg === '--output-enabled') {
+        args.outputEnabled = true;
         consumed.add(i);
       } else if (arg === '-h' || arg === '--help') {
         args.help = true;
@@ -170,7 +174,7 @@ export class ArgumentParser {
     }
 
     // Validate output-related arguments
-    if (args.output !== undefined && (typeof args.output !== 'string' || args.output.trim().length === 0)) {
+    if (args.outputFile !== undefined && (typeof args.outputFile !== 'string' || args.outputFile.trim().length === 0)) {
       return false;
     }
 
@@ -178,10 +182,7 @@ export class ArgumentParser {
       return false;
     }
 
-    // Check for conflicting options
-    if (args.noOutput && args.output) {
-      return false;
-    }
+    // No conflicting options to check for output
 
     return true;
   }
@@ -215,7 +216,7 @@ export class ArgumentParser {
       return 'Output format must be either "json" or "text"';
     }
 
-    if (args.output !== undefined && (typeof args.output !== 'string' || args.output.trim().length === 0)) {
+    if (args.outputFile !== undefined && (typeof args.outputFile !== 'string' || args.outputFile.trim().length === 0)) {
       return 'Output file path must be a non-empty string';
     }
 
@@ -223,9 +224,6 @@ export class ArgumentParser {
       return 'Output directory path must be a non-empty string';
     }
 
-    if (args.noOutput && args.output) {
-      return 'Cannot use both --no-output and --output options';
-    }
 
     return null;
   }

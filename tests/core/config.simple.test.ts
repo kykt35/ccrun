@@ -134,16 +134,16 @@ describe('ConfigManager', () => {
   });
 
   describe('mergeOutputSettings', () => {
-    it('should return null when CLI noOutput is true', () => {
+    it('should return null when output is disabled by default', () => {
       const result = ConfigManager.mergeOutputSettings(
-        'output.json',
+        undefined,
         './results',
         'json',
-        true,
+        false,
         null
       );
 
-      expect(result.outputPath).toBeNull();
+      expect(result.outputFile).toBeNull();
       expect(result.outputFormat).toBe('json');
     });
 
@@ -153,14 +153,14 @@ describe('ConfigManager', () => {
       };
 
       const result = ConfigManager.mergeOutputSettings(
-        'output.json',
+        undefined,
         './results',
         'json',
         false,
         settings
       );
 
-      expect(result.outputPath).toBeNull();
+      expect(result.outputFile).toBeNull();
       expect(result.outputFormat).toBe('json');
     });
 
@@ -173,26 +173,44 @@ describe('ConfigManager', () => {
         null
       );
 
-      expect(result.outputPath).toBe('output.json');
+      expect(result.outputFile).toBe('output.json');
       expect(result.outputFormat).toBe('text');
     });
 
-    it('should use auto-generate when no output file is provided', () => {
+    it('should use auto-generate when outputEnabled is true', () => {
+      const result = ConfigManager.mergeOutputSettings(
+        undefined,
+        './results',
+        'json',
+        true,
+        null
+      );
+
+      expect(result.outputFile).toBe('auto-generate');
+      expect(result.outputFormat).toBe('json');
+    });
+
+    it('should enable output when settings enable it', () => {
+      const settings: Settings = {
+        output: { enabled: true }
+      };
+
       const result = ConfigManager.mergeOutputSettings(
         undefined,
         './results',
         'json',
         false,
-        null
+        settings
       );
 
-      expect(result.outputPath).toBe('auto-generate');
+      expect(result.outputFile).toBe('auto-generate');
       expect(result.outputFormat).toBe('json');
     });
 
     it('should prioritize CLI format over settings format', () => {
       const settings: Settings = {
-        output: { format: 'text' }
+        outputFormat: 'text',
+        output: { enabled: true }
       };
 
       const result = ConfigManager.mergeOutputSettings(
@@ -208,14 +226,15 @@ describe('ConfigManager', () => {
 
     it('should use settings format when CLI format is not provided', () => {
       const settings: Settings = {
-        output: { format: 'text' }
+        outputFormat: 'text',
+        output: { enabled: true }
       };
 
       const result = ConfigManager.mergeOutputSettings(
-        'output.json',
+        undefined,
         './results',
         undefined,
-        false,
+        true,
         settings
       );
 
@@ -234,50 +253,89 @@ describe('ConfigManager', () => {
       expect(result.outputFormat).toBe('json');
     });
 
-    it('should handle all undefined CLI parameters', () => {
+    it('should enable output when CLI output file is provided', () => {
       const result = ConfigManager.mergeOutputSettings(
-        undefined,
-        undefined,
-        undefined,
+        'output.json',
+        './results',
+        'text',
         false,
         null
       );
 
-      expect(result.outputPath).toBe('auto-generate');
-      expect(result.outputFormat).toBe('json');
+      expect(result.outputFile).toBe('output.json');
+      expect(result.outputFormat).toBe('text');
     });
 
-    it('should respect settings format when CLI noOutput is true', () => {
+    it('should enable output when outputEnabled is true with settings', () => {
       const settings: Settings = {
-        output: { format: 'text' }
+        outputFormat: 'text'
       };
 
       const result = ConfigManager.mergeOutputSettings(
-        'output.json',
+        undefined,
         './results',
         undefined,
         true,
         settings
       );
 
-      expect(result.outputPath).toBeNull();
+      expect(result.outputFile).toBe('auto-generate');
       expect(result.outputFormat).toBe('text');
     });
 
-    it('should use CLI format when CLI noOutput is true', () => {
+    it('should use settings outputFile when provided', () => {
       const settings: Settings = {
-        output: { format: 'text' }
+        outputFile: './custom/output.json',
+        outputFormat: 'json'
       };
 
       const result = ConfigManager.mergeOutputSettings(
-        'output.json',
+        undefined,
         './results',
-        'json',
-        true,
+        undefined,
+        false,
         settings
       );
 
-      expect(result.outputPath).toBeNull();
+      expect(result.outputFile).toBe('./custom/output.json');
+      expect(result.outputFormat).toBe('json');
+    });
+
+    it('should enable output when settings outputFile is provided', () => {
+      const settings: Settings = {
+        outputFile: './auto/output.json'
+      };
+
+      const result = ConfigManager.mergeOutputSettings(
+        undefined,
+        './results',
+        undefined,
+        false,
+        settings
+      );
+
+      expect(result.outputFile).toBe('./auto/output.json');
+      expect(result.outputFormat).toBe('json');
+    });
+
+    it('should prioritize outputFile over output.enabled when both are provided', () => {
+      const settings: Settings = {
+        outputFile: './specific/file.json',
+        output: {
+          enabled: true,
+          directory: './different/dir'
+        }
+      };
+
+      const result = ConfigManager.mergeOutputSettings(
+        undefined,
+        './results',
+        undefined,
+        false,
+        settings
+      );
+
+      expect(result.outputFile).toBe('./specific/file.json');
       expect(result.outputFormat).toBe('json');
     });
   });

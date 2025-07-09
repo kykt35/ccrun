@@ -146,7 +146,7 @@ describe('File Output Error Handling', () => {
       const path = FileOutputManager.resolveOutputPath(
         undefined,
         undefined,
-        true // noOutput = true
+        false // outputEnabled = false
       );
       
       expect(path).toBeNull();
@@ -176,7 +176,7 @@ describe('File Output Error Handling', () => {
       const path = FileOutputManager.resolveOutputPath(
         '',
         './output',
-        false
+        true
       );
       
       expect(path).toMatch(/output\/\d{8}\d{6}\.json$/);

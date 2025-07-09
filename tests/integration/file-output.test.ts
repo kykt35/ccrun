@@ -31,14 +31,14 @@ describe('File Output Integration Tests', () => {
     it('should parse all output options correctly', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'test prompt',
-        '-o', 'output.json',
+        '--output-file', 'output.json',
         '--output-dir', './results',
         '--output-format', 'text',
         '--max-turns', '5'
       ]);
 
       expect(args.prompt).toBe('test prompt');
-      expect(args.output).toBe('output.json');
+      expect(args.outputFile).toBe('output.json');
       expect(args.outputDir).toBe('./results');
       expect(args.outputFormat).toBe('text');
       expect(args.maxTurns).toBe(5);
@@ -55,15 +55,15 @@ describe('File Output Integration Tests', () => {
       expect(ArgumentParser.getValidationError(args)).toBeNull();
     });
 
-    it('should reject conflicting output options', () => {
+    it('should validate output-file and output flags together', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'test',
         '-o', 'output.json',
-        '--no-output'
+        '--output'
       ]);
 
-      expect(ArgumentParser.validateArgs(args)).toBe(false);
-      expect(ArgumentParser.getValidationError(args)).toBe('Cannot use both --no-output and --output options');
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+      expect(ArgumentParser.getValidationError(args)).toBeNull();
     });
   });
 
@@ -71,11 +71,11 @@ describe('File Output Integration Tests', () => {
     it('should handle relative paths correctly', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'test',
-        '-o', 'result.json',
+        '--output-file', 'result.json',
         '--output-dir', testDir
       ]);
 
-      expect(args.output).toBe('result.json');
+      expect(args.outputFile).toBe('result.json');
       expect(args.outputDir).toBe(testDir);
     });
 
@@ -83,10 +83,10 @@ describe('File Output Integration Tests', () => {
       const absolutePath = join(testDir, 'absolute-output.json');
       const args = ArgumentParser.parseArgs([
         '-i', 'test',
-        '-o', absolutePath
+        '--output-file', absolutePath
       ]);
 
-      expect(args.output).toBe(absolutePath);
+      expect(args.outputFile).toBe(absolutePath);
     });
   });
 
@@ -104,7 +104,7 @@ describe('File Output Integration Tests', () => {
     it('should handle empty output paths', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'test',
-        '-o', ''
+        '--output-file', ''
       ]);
 
       expect(ArgumentParser.validateArgs(args)).toBe(false);
@@ -126,7 +126,7 @@ describe('File Output Integration Tests', () => {
     it('should handle all options together correctly', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'analyze the code',
-        '-o', 'analysis.json',
+        '--output-file', 'analysis.json',
         '--output-dir', './results',
         '--output-format', 'json',
         '--max-turns', '10',
@@ -136,13 +136,33 @@ describe('File Output Integration Tests', () => {
       ]);
 
       expect(args.prompt).toBe('analyze the code');
-      expect(args.output).toBe('analysis.json');
+      expect(args.outputFile).toBe('analysis.json');
       expect(args.outputDir).toBe('./results');
       expect(args.outputFormat).toBe('json');
       expect(args.maxTurns).toBe(10);
       expect(args.allowedTools).toEqual(['Read', 'Write', 'Edit']);
       expect(args.permissionMode).toBe('acceptEdits');
       expect(args.settingsFile).toBe('custom-settings.json');
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+      expect(ArgumentParser.getValidationError(args)).toBeNull();
+    });
+
+    it('should handle --output-enabled with other options', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'quick analysis',
+        '--output-enabled',
+        '--output-dir', './temp',
+        '--output-format', 'text',
+        '--max-turns', '5'
+      ]);
+
+      expect(args.prompt).toBe('quick analysis');
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
+      expect(args.outputDir).toBe('./temp');
+      expect(args.outputFormat).toBe('text');
+      expect(args.maxTurns).toBe(5);
       
       expect(ArgumentParser.validateArgs(args)).toBe(true);
       expect(ArgumentParser.getValidationError(args)).toBeNull();
@@ -166,16 +186,81 @@ describe('File Output Integration Tests', () => {
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
 
-    it('should handle no-output flag properly', () => {
+    it('should handle --output flag properly', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'quick test',
-        '--no-output',
+        '--output',
         '--max-turns', '3'
       ]);
 
       expect(args.prompt).toBe('quick test');
-      expect(args.noOutput).toBe(true);
+      expect(args.outputEnabled).toBe(true);
       expect(args.maxTurns).toBe(3);
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should handle --output-enabled flag properly', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'quick test',
+        '--output-enabled',
+        '--max-turns', '5'
+      ]);
+
+      expect(args.prompt).toBe('quick test');
+      expect(args.outputEnabled).toBe(true);
+      expect(args.maxTurns).toBe(5);
+      expect(args.outputFile).toBeUndefined();
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should handle --output flag for auto-generation', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'test',
+        '--output'
+      ]);
+
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should handle -o as auto-output when followed by flag', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'test',
+        '-o', '--output-format', 'text'
+      ]);
+
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
+      expect(args.outputFormat).toBe('text');
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should handle --output as auto-output when followed by flag', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'test',
+        '--output', '--output-format', 'json'
+      ]);
+
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
+      expect(args.outputFormat).toBe('json');
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should handle -o flag for auto-generation', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'test',
+        '-o'
+      ]);
+
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
       
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
@@ -185,34 +270,35 @@ describe('File Output Integration Tests', () => {
     it('should handle empty string arguments', () => {
       const args = ArgumentParser.parseArgs([
         '-i', '',
-        '-o', 'output.json'
+        '--output-file', 'output.json'
       ]);
 
       expect(args.prompt).toBe('');
-      expect(args.output).toBe('output.json');
+      expect(args.outputFile).toBe('output.json');
       expect(ArgumentParser.validateArgs(args)).toBe(false);
     });
 
     it('should handle missing argument values', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'test',
-        '-o' // Missing value
+        '-o' // Missing value - should act as --output
       ]);
 
       expect(args.prompt).toBe('test');
-      expect(args.output).toBeUndefined();
+      expect(args.outputFile).toBeUndefined();
+      expect(args.outputEnabled).toBe(true);
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
 
     it('should handle duplicate flags', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'test',
-        '-o', 'first.json',
-        '-o', 'second.json'
+        '--output-file', 'first.json',
+        '--output-file', 'second.json'
       ]);
 
       expect(args.prompt).toBe('test');
-      expect(args.output).toBe('second.json'); // Should take the last one
+      expect(args.outputFile).toBe('second.json'); // Should take the last one
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
 
@@ -230,10 +316,10 @@ describe('File Output Integration Tests', () => {
       const longPath = 'a'.repeat(250) + '.json';
       const args = ArgumentParser.parseArgs([
         '-i', 'test',
-        '-o', longPath
+        '--output-file', longPath
       ]);
 
-      expect(args.output).toBe(longPath);
+      expect(args.outputFile).toBe(longPath);
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
   });
