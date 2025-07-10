@@ -339,4 +339,43 @@ describe('ConfigManager', () => {
       expect(result.outputFormat).toBe('json');
     });
   });
+
+  describe('Custom System Prompt Support', () => {
+    it('should accept customSystemPrompt in Settings type', () => {
+      const settings: Settings = {
+        customSystemPrompt: 'You are an expert TypeScript developer',
+        maxTurns: 10,
+        permissions: {
+          allow: ['Read', 'Write'],
+          deny: ['Bash']
+        }
+      };
+
+      expect(settings.customSystemPrompt).toBe('You are an expert TypeScript developer');
+      expect(settings.maxTurns).toBe(10);
+    });
+
+    it('should validate config with customSystemPrompt', () => {
+      const config: CCRunConfig = {
+        prompt: 'test prompt',
+        customSystemPrompt: 'You are a helpful assistant',
+        maxTurns: 5
+      };
+
+      const result = ConfigManager.validateConfig(config);
+
+      expect(result).toBe(true);
+    });
+
+    it('should validate config without customSystemPrompt', () => {
+      const config: CCRunConfig = {
+        prompt: 'test prompt',
+        maxTurns: 5
+      };
+
+      const result = ConfigManager.validateConfig(config);
+
+      expect(result).toBe(true);
+    });
+  });
 });

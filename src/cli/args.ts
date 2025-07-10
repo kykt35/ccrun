@@ -15,6 +15,7 @@ export interface CLIArgs {
   outputDir?: string;
   outputFormat?: 'json' | 'text';
   outputEnabled?: boolean;
+  customSystemPrompt?: string;
 }
 
 export class ArgumentParser {
@@ -118,6 +119,13 @@ export class ArgumentParser {
       } else if (arg === '-h' || arg === '--help') {
         args.help = true;
         consumed.add(i);
+      } else if (arg === '--custom-system-prompt' || arg === '-csp') {
+        const nextArg = argv[++i];
+        if (nextArg !== undefined) {
+          args.customSystemPrompt = nextArg;
+        }
+        consumed.add(i - 1);
+        consumed.add(i);
       }
     }
 
@@ -184,6 +192,11 @@ export class ArgumentParser {
 
     // No conflicting options to check for output
 
+    // Validate customSystemPrompt if provided
+    if (args.customSystemPrompt !== undefined && (typeof args.customSystemPrompt !== 'string' || args.customSystemPrompt.trim().length === 0)) {
+      return false;
+    }
+
     return true;
   }
 
@@ -224,6 +237,9 @@ export class ArgumentParser {
       return 'Output directory path must be a non-empty string';
     }
 
+    if (args.customSystemPrompt !== undefined && (typeof args.customSystemPrompt !== 'string' || args.customSystemPrompt.trim().length === 0)) {
+      return 'Custom system prompt must be a non-empty string';
+    }
 
     return null;
   }

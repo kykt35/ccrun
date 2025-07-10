@@ -225,6 +225,38 @@ describe('ArgumentParser', () => {
       expect(args.outputFormat).toBe('json');
       expect(args.outputFile).toBeUndefined();
     });
+
+    it('should parse custom system prompt with --custom-system-prompt flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--custom-system-prompt', 'You are an expert']);
+      
+      expect(args.customSystemPrompt).toBe('You are an expert');
+    });
+
+    it('should parse custom system prompt with -csp flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '-csp', 'Focus on security']);
+      
+      expect(args.customSystemPrompt).toBe('Focus on security');
+    });
+
+    it('should parse custom system prompt with spaces', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--custom-system-prompt', 'You are a TypeScript expert developer']);
+      
+      expect(args.customSystemPrompt).toBe('You are a TypeScript expert developer');
+    });
+
+    it('should parse custom system prompt with other options', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'test prompt',
+        '--custom-system-prompt', 'Custom prompt here',
+        '--max-turns', '10',
+        '--allowedTools', 'Read,Write'
+      ]);
+      
+      expect(args.prompt).toBe('test prompt');
+      expect(args.customSystemPrompt).toBe('Custom prompt here');
+      expect(args.maxTurns).toBe(10);
+      expect(args.allowedTools).toEqual(['Read', 'Write']);
+    });
   });
 
   describe('validateArgs', () => {
@@ -385,6 +417,24 @@ describe('ArgumentParser', () => {
       
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
+
+    it('should validate args with custom system prompt', () => {
+      const args: CLIArgs = { prompt: 'test', customSystemPrompt: 'You are an expert' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should reject empty custom system prompt', () => {
+      const args: CLIArgs = { prompt: 'test', customSystemPrompt: '' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should reject whitespace-only custom system prompt', () => {
+      const args: CLIArgs = { prompt: 'test', customSystemPrompt: '   ' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
   });
 
   describe('getValidationError', () => {
@@ -484,6 +534,26 @@ describe('ArgumentParser', () => {
       const args: CLIArgs = { prompt: 'test', outputEnabled: true };
       
       expect(ArgumentParser.getValidationError(args)).toBeNull();
+    });
+
+    it('should return null for valid custom system prompt', () => {
+      const args: CLIArgs = { prompt: 'test', customSystemPrompt: 'You are an expert' };
+      
+      expect(ArgumentParser.getValidationError(args)).toBeNull();
+    });
+
+    it('should return error for empty custom system prompt', () => {
+      const args: CLIArgs = { prompt: 'test', customSystemPrompt: '' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Custom system prompt must be a non-empty string');
+    });
+
+    it('should return error for whitespace-only custom system prompt', () => {
+      const args: CLIArgs = { prompt: 'test', customSystemPrompt: '   ' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('Custom system prompt must be a non-empty string');
     });
   });
 });

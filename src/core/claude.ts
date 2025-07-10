@@ -29,8 +29,10 @@ export class ClaudeWrapper {
       if (config.resume !== undefined) {
         options.resume = config.resume;
       }
+      if (config.customSystemPrompt !== undefined) {
+        options.customSystemPrompt = config.customSystemPrompt;
+      }
       options.permissionMode = config.permissionMode || 'default';
-
       const stream = query({
         prompt,
         abortController: new AbortController(),
@@ -42,7 +44,7 @@ export class ClaudeWrapper {
         if (chunk.type === 'system' && chunk.session_id) {
           sessionId = chunk.session_id;
         }
-        
+
         yield chunk;
         messages.push(chunk);
       }

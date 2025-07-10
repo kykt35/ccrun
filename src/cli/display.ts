@@ -70,7 +70,7 @@ export class DisplayManager {
   }
 
   static formatSessionInfo(sessionId: string): string {
-    return `🔗 Session ID: ${sessionId}\n💡 Continue with: ccrun --continue or ccrun --resume ${sessionId}`;
+    return `🔗 Session ID: ${sessionId}\n💡 Continue with claude: claude --continue or claude --resume ${sessionId}`;
   }
 
   static formatResult(result: SDKResultMessage): string {
