@@ -32,7 +32,7 @@ It supports direct prompts, file input, session continuation, and tool filtering
   --allowedTools <tools>      Comma-separated list of allowed tools
   --disallowedTools <tools>   Comma-separated list of disallowed tools
   --permission-mode <mode>    Set permission mode (default|plan|acceptEdits|bypassPermissions)
-  -s, --settingFile <file>    Specify custom settings file path
+  -s, --settingsFile <file>   Specify custom settings file path
   --custom-system-prompt <p>  Custom system prompt for Claude
   -csp <prompt>               Short form of --custom-system-prompt
   -o [file]                   Output file path (with file) or enable auto-output (without file)
@@ -79,7 +79,7 @@ Available Tools:
   ccrun -i "Quick check"  # No output (default behavior)
 
   # Custom settings file
-  ccrun -i "Analyze the code" --settingFile ./my-settings.json
+  ccrun -i "Analyze the code" --settingsFile ./my-settings.json
   ccrun -i "Write tests" -s ../shared-settings.json
 
   # Custom system prompt

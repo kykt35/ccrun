@@ -114,8 +114,8 @@ describe('ArgumentParser', () => {
       expect(args.permissionMode).toBeUndefined();
     });
 
-    it('should parse settings file with --settingFile flag', () => {
-      const args = ArgumentParser.parseArgs(['-i', 'test', '--settingFile', 'custom-settings.json']);
+    it('should parse settings file with --settingsFile flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--settingsFile', 'custom-settings.json']);
       
       expect(args.settingsFile).toBe('custom-settings.json');
     });
