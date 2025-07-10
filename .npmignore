@@ -1,0 +1,49 @@
+# Source files
+src/
+tests/
+
+# Development files
+.vscode/
+.git/
+.gitignore
+.npmignore
+.env*
+*.ts
+!dist/**/*.ts
+tsconfig.json
+jest.config.js
+*.test.*
+coverage/
+
+# Dependencies
+node_modules/
+
+# OS files
+.DS_Store
+*.log
+
+# Documentation
+CLAUDE.md
+
+# Test output
+test-results/
+*.xml
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# IDE files
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts not needed
+*.tsbuildinfo
+.eslintcache
+.npm/
+
+.ccrun/
