@@ -130,7 +130,7 @@ describe('Integration Tests', () => {
         '-i', 'test prompt', 
         '--custom-system-prompt', 'You are an expert',
         '--max-turns', '10',
-        '--allowedTools', 'Read,Write'
+        '--allowed-tools', 'Read,Write'
       ]);
 
       expect(mockExecute).toHaveBeenCalledWith('test prompt', undefined, 
