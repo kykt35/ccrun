@@ -641,4 +641,199 @@ describe('ArgumentParser', () => {
       expect(error).toBe('Custom system prompt must be a non-empty string');
     });
   });
+
+  describe('boundary checks', () => {
+    describe('should throw error when option requires value but none provided', () => {
+      it('should throw error for -i without value', () => {
+        expect(() => ArgumentParser.parseArgs(['-i'])).toThrow('Option -i/--input requires a value');
+      });
+
+      it('should throw error for --input without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--input'])).toThrow('Option -i/--input requires a value');
+      });
+
+      it('should throw error for -f without value', () => {
+        expect(() => ArgumentParser.parseArgs(['-f'])).toThrow('Option -f/--file requires a value');
+      });
+
+      it('should throw error for --file without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--file'])).toThrow('Option -f/--file requires a value');
+      });
+
+      it('should throw error for --max-turns without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--max-turns'])).toThrow('Option --max-turns/--maxTurns requires a value');
+      });
+
+      it('should throw error for --maxTurns without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--maxTurns'])).toThrow('Option --max-turns/--maxTurns requires a value');
+      });
+
+      it('should throw error for --resume without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--resume'])).toThrow('Option --resume requires a value');
+      });
+
+      it('should throw error for --allowedTools without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--allowedTools'])).toThrow('Option --allowedTools/--allowed-tools requires a value');
+      });
+
+      it('should throw error for --allowed-tools without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--allowed-tools'])).toThrow('Option --allowedTools/--allowed-tools requires a value');
+      });
+
+      it('should throw error for --disallowedTools without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--disallowedTools'])).toThrow('Option --disallowedTools/--disallowed-tools requires a value');
+      });
+
+      it('should throw error for --disallowed-tools without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--disallowed-tools'])).toThrow('Option --disallowedTools/--disallowed-tools requires a value');
+      });
+
+      it('should throw error for --permission-mode without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--permission-mode'])).toThrow('Option --permission-mode/--permissionMode requires a value');
+      });
+
+      it('should throw error for --permissionMode without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--permissionMode'])).toThrow('Option --permission-mode/--permissionMode requires a value');
+      });
+
+      it('should throw error for --settingsFile without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--settingsFile'])).toThrow('Option --settingsFile/--settings-file/-s requires a value');
+      });
+
+      it('should throw error for --settings-file without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--settings-file'])).toThrow('Option --settingsFile/--settings-file/-s requires a value');
+      });
+
+      it('should throw error for -s without value', () => {
+        expect(() => ArgumentParser.parseArgs(['-s'])).toThrow('Option --settingsFile/--settings-file/-s requires a value');
+      });
+
+      it('should throw error for --output-file without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--output-file'])).toThrow('Option --output-file/--outputFile requires a value');
+      });
+
+      it('should throw error for --outputFile without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--outputFile'])).toThrow('Option --output-file/--outputFile requires a value');
+      });
+
+      it('should throw error for --output-dir without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--output-dir'])).toThrow('Option --output-dir/--outputDir requires a value');
+      });
+
+      it('should throw error for --outputDir without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--outputDir'])).toThrow('Option --output-dir/--outputDir requires a value');
+      });
+
+      it('should throw error for --output-format without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--output-format'])).toThrow('Option --output-format/--outputFormat requires a value');
+      });
+
+      it('should throw error for --outputFormat without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--outputFormat'])).toThrow('Option --output-format/--outputFormat requires a value');
+      });
+
+      it('should throw error for --custom-system-prompt without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--custom-system-prompt'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp requires a value');
+      });
+
+      it('should throw error for --customSystemPrompt without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--customSystemPrompt'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp requires a value');
+      });
+
+      it('should throw error for -csp without value', () => {
+        expect(() => ArgumentParser.parseArgs(['-csp'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp requires a value');
+      });
+    });
+
+    describe('should handle options without values when followed by other options', () => {
+      it('should throw error for -i followed by another flag', () => {
+        expect(() => ArgumentParser.parseArgs(['-i', '--max-turns', '5'])).toThrow('Option -i/--input requires a value');
+      });
+
+      it('should throw error for --resume followed by another flag', () => {
+        expect(() => ArgumentParser.parseArgs(['--resume', '--max-turns', '5'])).toThrow('Option --resume requires a value');
+      });
+
+      it('should throw error for --allowedTools followed by another flag', () => {
+        expect(() => ArgumentParser.parseArgs(['--allowedTools', '--max-turns', '5'])).toThrow('Option --allowedTools/--allowed-tools requires a value');
+      });
+
+      it('should throw error for multiple options missing values in sequence', () => {
+        expect(() => ArgumentParser.parseArgs(['-i', '-f'])).toThrow('Option -i/--input requires a value');
+      });
+
+      it('should throw error for last option missing value', () => {
+        expect(() => ArgumentParser.parseArgs(['-i', 'test', '--max-turns'])).toThrow('Option --max-turns/--maxTurns requires a value');
+      });
+
+      it('should throw error for middle option missing value', () => {
+        expect(() => ArgumentParser.parseArgs(['-i', 'test', '--resume', '--max-turns', '5'])).toThrow('Option --resume requires a value');
+      });
+    });
+
+    describe('should handle edge cases with empty arrays and invalid indices', () => {
+      it('should throw error for single option without value in empty-like array', () => {
+        expect(() => ArgumentParser.parseArgs(['-i'])).toThrow('Option -i/--input requires a value');
+      });
+
+      it('should handle valid options properly after invalid ones are caught', () => {
+        // Test that normal functionality still works
+        const args = ArgumentParser.parseArgs(['-i', 'test prompt', '--max-turns', '5']);
+        expect(args.prompt).toBe('test prompt');
+        expect(args.maxTurns).toBe(5);
+      });
+
+      it('should handle flags that do not require values properly', () => {
+        const args = ArgumentParser.parseArgs(['-i', 'test', '-c', '-h']);
+        expect(args.prompt).toBe('test');
+        expect(args.continue).toBe(true);
+        expect(args.help).toBe(true);
+      });
+
+      it('should handle mixed valid and boundary-violating scenarios', () => {
+        // This should work fine
+        const args1 = ArgumentParser.parseArgs(['-c', '-i', 'test']);
+        expect(args1.continue).toBe(true);
+        expect(args1.prompt).toBe('test');
+
+        // This should fail
+        expect(() => ArgumentParser.parseArgs(['-c', '-i'])).toThrow('Option -i/--input requires a value');
+      });
+    });
+
+    describe('should validate option values when provided after boundary check', () => {
+      it('should still validate invalid permission modes after boundary check passes', () => {
+        const args = ArgumentParser.parseArgs(['-i', 'test', '--permission-mode', 'invalid']);
+        expect(args.permissionMode).toBeUndefined(); // Invalid modes are ignored
+      });
+
+      it('should still validate invalid output formats after boundary check passes', () => {
+        const args = ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'invalid']);
+        expect(args.outputFormat).toBeUndefined(); // Invalid formats are ignored
+      });
+
+      it('should still validate invalid max turns after boundary check passes', () => {
+        const args = ArgumentParser.parseArgs(['-i', 'test', '--max-turns', 'not-a-number']);
+        expect(args.maxTurns).toBeUndefined(); // Invalid numbers are ignored
+      });
+
+      it('should process valid values correctly after boundary check passes', () => {
+        const args = ArgumentParser.parseArgs([
+          '-i', 'test',
+          '--max-turns', '10',
+          '--permission-mode', 'plan',
+          '--output-format', 'json',
+          '--allowedTools', 'Read,Write',
+          '--resume', 'session123'
+        ]);
+
+        expect(args.prompt).toBe('test');
+        expect(args.maxTurns).toBe(10);
+        expect(args.permissionMode).toBe('plan');
+        expect(args.outputFormat).toBe('json');
+        expect(args.allowedTools).toEqual(['Read', 'Write']);
+        expect(args.sessionId).toBe('session123');
+      });
+    });
+  });
 });
