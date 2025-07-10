@@ -81,7 +81,7 @@ export class ArgumentParser {
         }
         consumed.add(i - 1);
         consumed.add(i);
-      } else if (arg === '--settingFile' || arg === '-s') {
+      } else if (arg === '--settingsFile' || arg === '-s') {
         const nextArg = argv[++i];
         if (nextArg !== undefined) {
           args.settingsFile = nextArg;

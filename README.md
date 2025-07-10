@@ -46,7 +46,7 @@ npx ccrun -i "Hello"
 - `--disallowedTools <tools>`: Specify disallowed tools (comma-separated)
 - `--custom-system-prompt <prompt>`: Custom system prompt for Claude
 - `-csp <prompt>`: Short form of --custom-system-prompt
-- `--settingFile <filePath>`, `-s <filePath>`: Specify settings file
+- `--settingsFile <filePath>`, `-s <filePath>`: Specify settings file
 - `-o, --output`: Enable output with auto-generated filename
 - `--output-file <file>`: Specify output file path (explicit)
 - `--output-enabled`: Enable output (same as `--output`)
@@ -126,7 +126,7 @@ npx ccrun -i "Analyze the project" --allowedTools "Read,Grep,Glob" --disallowedT
 
 ```bash
 # Specify custom settings file
-npx ccrun -i "Read the file" --settingFile ./my-settings.json
+npx ccrun -i "Read the file" --settingsFile ./my-settings.json
 
 # Short form also available
 npx ccrun -i "Analyze the project" -s ../shared-settings.json
@@ -229,15 +229,15 @@ You can create settings in `.ccrun/settings.json` or `.ccrun/settings.local.json
 
 ### Custom Settings Files
 
-You can specify any settings file with the `--settingFile` option:
+You can specify any settings file with the `--settingsFile` option:
 
 ```bash
-npx ccrun -i "prompt" --settingFile ./custom-settings.json
+npx ccrun -i "prompt" --settingsFile ./custom-settings.json
 ```
 
 ### Settings File Priority
 
-1. **Highest**: File specified with `--settingFile`
+1. **Highest**: File specified with `--settingsFile`
 2. **Next**: `.ccrun/settings.local.json`
 3. **Last**: `.ccrun/settings.json`
 
@@ -311,11 +311,11 @@ The project includes an example settings file:
 
 ```bash
 # Use example settings
-npx ccrun -i "Analyze the code" --settingFile .ccrun/settings.example.json
+npx ccrun -i "Analyze the code" --settingsFile .ccrun/settings.example.json
 
 # Copy example settings to create your own
 cp .ccrun/settings.example.json .ccrun/settings.local.json
-npx ccrun -i "prompt" --settingFile .ccrun/settings.local.json
+npx ccrun -i "prompt" --settingsFile .ccrun/settings.local.json
 ```
 
 ---
