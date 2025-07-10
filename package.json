@@ -1,7 +1,7 @@
 {
   "name": "ccrun",
   "version": "0.1.0",
-  "description": "A tool to make Claude's print mode more user-friendly",
+  "description": "A tool to make Claude's one shot mode more user-friendly",
   "main": "src/index.ts",
   "bin": {
     "ccrun": "./dist/index.js"
@@ -9,11 +9,26 @@
   "keywords": [
     "claude",
     "cli",
-    "ai",
-    "streaming"
+    "ai"
   ],
   "author": "kykt35",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kykt35/ccrun.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kykt35/ccrun/issues"
+  },
+  "homepage": "https://github.com/kykt35/ccrun#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@anthropic-ai/claude-code": "^1.0.41",
     "commander": "^11.0.0"
