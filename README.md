@@ -1,171 +1,185 @@
 # ccrun
 
-## 概要
+## Overview
 
-`ccrun` は、Anthropic Claude Code APIをCLIから簡単に利用できるTypeScript製コマンドラインツールです。
+`ccrun` is a CLI tool that provides a user-friendly wrapper around the Claude Code one shot mode. It simplifies interactions with Claude through command-line interfaces by supporting direct prompts, file inputs, and flexible permission control.
 
 ---
 
-## 使い方
+## Usage
 
-### 1. リポジトリのクローン
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/kykt35/ccrun.git
 cd ccrun
 ```
 
-### 2. 依存パッケージのインストール
+### 2. Install Dependencies
 
 ``` bash
 npm install
 ```
 
-### 3. ビルド（初回のみ）
+### 3. Build (First Time Only)
 
 ```bash
 npm run build
 ```
 
-### 4. CLIとして直接実行
+### 4. Run Directly as CLI
 
-TypeScriptファイルを直接実行する場合：
+To run the TypeScript file directly:
 
 ```bash
-npm run exec -- -i "こんにちは"
+npx ccrun -i "Hello"
 ```
 
-#### 主なオプション
+#### Main Options
 
-- `-i, --input <prompt>`: 直接プロンプトを指定
-- `-f, --file <file>`: ファイルからプロンプトを読み込む
-- `--max-turns <number>`: 最大ターン数を指定
-- `-c, --continue`: セッションを継続
-- `--resume <session-id>`: セッションIDから再開
-- `--allowedTools <tools>`: 許可するツールをカンマ区切りで指定
-- `--disallowedTools <tools>`: 禁止するツールをカンマ区切りで指定
-- `--settingFile <filePath>`, `-s <filePath>`: 設定ファイルを指定
-- `-o, --output`: 自動生成ファイル名で出力を有効化
-- `--output-file <file>`: 出力ファイルパス指定（明示的）
-- `--output-enabled`: 出力を有効化（`--output`と同じ）
-- `--output-dir <directory>`: 出力ディレクトリ指定（デフォルト: ./tmp/ccrun/results）
-- `--output-format <format>`: 出力形式（json|text、デフォルト: json）
-- `-h, --help`: ヘルプを表示
+- `-i, --input <prompt>`: Specify prompt directly(optional)
+- `-f, --file <file>`: Read prompt from file
+- `--max-turns <number>`: Specify maximum number of turns
+- `-c, --continue`: Continue session
+- `--resume <session-id>`: Resume from session ID
+- `--allowedTools <tools>`: Specify allowed tools (comma-separated)
+- `--disallowedTools <tools>`: Specify disallowed tools (comma-separated)
+- `--settingFile <filePath>`, `-s <filePath>`: Specify settings file
+- `-o, --output`: Enable output with auto-generated filename
+- `--output-file <file>`: Specify output file path (explicit)
+- `--output-enabled`: Enable output (same as `--output`)
+- `--output-dir <directory>`: Specify output directory (default: ./tmp/ccrun/results)
+- `--output-format <format>`: Output format (json|text, default: json)
+- `-h, --help`: Show help
 
-### 使用例
+### Examples
 
-#### 基本的な使用方法
+#### Basic Usage
 
 ```bash
-# 直接プロンプトを指定
-ccrun -i "TypeScriptのコードを書いてください"
+# Specify prompt directly
+npx ccrun -i "Write TypeScript code"
 
-# ファイルからプロンプトを読み込む
-ccrun -f prompt.txt
+# Read prompt from file
+npx ccrun -f prompt.txt
 
-# ヘルプを表示
-ccrun -h
+# Show help
+npx ccrun -h
 ```
 
-#### セッション管理
+#### Session Management
 
 ```bash
-# 前のセッションを継続
-ccrun --continue -i "さらに詳しく説明してください"
+# Continue previous session
+npx ccrun --continue -i "Please explain more"
 
-# 特定のセッションを再開
-ccrun --resume abc123 -i "追加の質問があります"
+# Resume specific session
+npx ccrun --resume <session-id> -i "I have additional questions"
+
 ```
 
-#### ツール制限
+You can resume sessions with claude command.
 
 ```bash
-# 特定のツールのみ許可
-ccrun -i "ファイルを読み込んでください" --allowedTools "Read,Write"
 
-# 特定のツールを禁止
-ccrun -i "コードを実行してください" --disallowedTools "Bash"
+# Continue previous session with claude interactive mode
+claude --continue
 
-# 複数のツールを組み合わせ
-ccrun -i "プロジェクトを分析してください" --allowedTools "Read,Grep,Glob" --disallowedTools "Write,Edit"
+# Resume specific session with claude interactive mode
+claude --resume <session-id>
+
 ```
 
-#### 設定ファイルの使用
+
+#### Tool Restrictions 
 
 ```bash
-# カスタム設定ファイルを指定
-ccrun -i "ファイルを読み込んでください" --settingFile ./my-settings.json
+# Allow specific tools only
+npx ccrun -i "Read the file" --allowedTools "Read,Write"
 
-# 短縮形も使用可能
-ccrun -i "プロジェクトを分析してください" -s ../shared-settings.json
+# Disallow specific tools
+npx ccrun -i "Execute the code" --disallowedTools "Bash"
+
+# Combine multiple tools
+npx ccrun -i "Analyze the project" --allowedTools "Read,Grep,Glob" --disallowedTools "Write,Edit"
 ```
 
-#### ファイル出力機能
-
-実行結果をファイルに出力します。**デフォルトでは出力は無効**で、明示的に有効化する必要があります。
+#### Using Settings Files
 
 ```bash
-# 出力を有効化（自動生成ファイル名: ./tmp/ccrun/results/yyyyMMddHHmmss.json）
-ccrun -i "コードを分析して" --output
+# Specify custom settings file
+npx ccrun -i "Read the file" --settingFile ./my-settings.json
 
-# 短縮形でも同様
-ccrun -i "コードを分析して" -o
-
-# 指定ファイルに保存
-ccrun -i "コードを分析して" --output-file results.json
-
-# 明示的な出力ファイル指定
-ccrun -i "コードを分析して" --output-file results.json
-
-# カスタムディレクトリに保存
-ccrun -i "コードを分析して" --output --output-dir ./output
-
-# テキスト形式で保存
-ccrun -i "バグを修正して" -o results.txt --output-format text
-
-# 出力無効化（デフォルト動作、コンソール出力のみ）
-ccrun -i "コードを分析して"
-
-# 複数のオプションを組み合わせ
-ccrun -f input.txt --output --output-dir ./results --output-format json
+# Short form also available
+npx ccrun -i "Analyze the project" -s ../shared-settings.json
 ```
 
-#### その他のオプション
+#### File Output Feature
+
+Save execution results to file. **Output is disabled by default** and must be explicitly enabled.
 
 ```bash
-# 最大ターン数を制限
-ccrun -i "長い議論をしましょう" --max-turns 10
+# Enable output (auto-generated filename: ./tmp/ccrun/results/yyyyMMddHHmmss.json)
+npx ccrun -i "Analyze the code" --output
 
-# 複数のオプションを組み合わせ
-ccrun -f input.txt --continue --max-turns 5 --allowedTools "Read,Write"
+# Short form works too
+npx ccrun -i "Analyze the code" -o
+
+# Save to specific file
+npx ccrun -i "Analyze the code" --output-file results.json
+
+# Explicit output file specification
+npx ccrun -i "Analyze the code" --output-file results.json
+
+# Save to custom directory
+npx ccrun -i "Analyze the code" --output --output-dir ./output
+
+# Save in text format
+npx ccrun -i "Fix the bug" -o results.txt --output-format text
+
+# Disable output (default behavior, console output only)
+npx ccrun -i "Analyze the code"
+
+# Combine multiple options
+npx ccrun -f input.txt --output --output-dir ./results --output-format json
+```
+
+#### Other Options
+
+```bash
+# Limit maximum turns
+npx ccrun -i "Let's have a long discussion" --max-turns 10
+
+# Combine multiple options
+npx ccrun -f input.txt --continue --max-turns 5 --allowedTools "Read,Write"
 ```
 
 ---
 
-## グローバルコマンドとして使う方法
+## Using as a Global Command
 
-プロジェクトルートで以下を実行：
+Run the following in the project root:
 
 ```bash
 npm run build
 npm link
 ```
 
-これで、どのディレクトリからでも `ccrun` コマンドとして利用できます。
+Now you can use the `ccrun` command from any directory.
 
-例：
+Example:
 
 ```bash
-ccrun -i "こんにちは"
+ccrun -i "Hello"
 ```
 
 ---
 
-## 設定ファイル
+## Settings Files
 
-### デフォルト設定ファイル
+### Default Settings Files
 
-`.ccrun/settings.json` または `.ccrun/settings.local.json` に設定を書くことができます：
+You can create settings in `.ccrun/settings.json` or `.ccrun/settings.local.json`:
 
 ```json
 {
@@ -187,23 +201,23 @@ ccrun -i "こんにちは"
 }
 ```
 
-### カスタム設定ファイル
+### Custom Settings Files
 
-`--settingFile` オプションで任意の設定ファイルを指定できます：
+You can specify any settings file with the `--settingFile` option:
 
 ```bash
-ccrun -i "プロンプト" --settingFile ./custom-settings.json
+npx ccrun -i "prompt" --settingFile ./custom-settings.json
 ```
 
-### 設定ファイルの優先度
+### Settings File Priority
 
-1. **最優先**: `--settingFile`で指定されたファイル
-2. **次優先**: `.ccrun/settings.local.json`
-3. **最後**: `.ccrun/settings.json`
+1. **Highest**: File specified with `--settingFile`
+2. **Next**: `.ccrun/settings.local.json`
+3. **Last**: `.ccrun/settings.json`
 
-### 設定ファイルの形式
+### Settings File Format
 
-#### 例1: outputFileを使用した直接ファイル指定
+#### Example 1: Direct File Specification with outputFile
 
 ```json
 {
@@ -217,7 +231,7 @@ ccrun -i "プロンプト" --settingFile ./custom-settings.json
 }
 ```
 
-#### 例2: outputでの自動生成設定
+#### Example 2: Auto-generation Settings with output
 
 ```json
 {
@@ -238,11 +252,11 @@ ccrun -i "プロンプト" --settingFile ./custom-settings.json
 }
 ```
 
-### 設定ファイルの例
+### Example Settings File
 
-プロジェクトには設定ファイル例が含まれています：
+The project includes an example settings file:
 
-#### 設定例 (`.ccrun/settings.example.json`)
+#### Example Settings (`.ccrun/settings.example.json`)
 
 ```json
 {
@@ -264,27 +278,30 @@ ccrun -i "プロンプト" --settingFile ./custom-settings.json
 }
 ```
 
-#### 使用例
+#### Usage Examples
 
 ```bash
-# 設定例を使用
-ccrun -i "コードを分析してください" --settingFile .ccrun/settings.example.json
+# Use example settings
+npx ccrun -i "Analyze the code" --settingFile .ccrun/settings.example.json
 
-# 設定例をコピーして独自の設定を作成
+# Copy example settings to create your own
 cp .ccrun/settings.example.json .ccrun/settings.local.json
-ccrun -i "プロンプト" --settingFile .ccrun/settings.local.json
+npx ccrun -i "prompt" --settingFile .ccrun/settings.local.json
 ```
 
 ---
 
-## ファイル出力機能
 
-### 出力形式
+## File Output Feature
 
-ccrunは2つの出力形式をサポートしています：
+You can output execution results to files.
 
-#### JSON形式（デフォルト）
-Claude Code SDKの標準形式（SDKResultMessage）に準拠した構造化データ形式です。
+### Output Formats
+
+ccrun supports two output formats:
+
+#### JSON Format (Default)
+Structured data format compliant with Claude Code SDK's standard format (SDKResultMessage).
 
 ```json
 {
@@ -295,7 +312,7 @@ Claude Code SDKの標準形式（SDKResultMessage）に準拠した構造化デ�
     "duration_api_ms": 2100,
     "is_error": false,
     "num_turns": 3,
-    "result": "実行結果の内容",
+    "result": "Execution result content",
     "session_id": "session-abc123",
     "total_cost_usd": 0.0042,
     "usage": {
@@ -314,71 +331,71 @@ Claude Code SDKの標準形式（SDKResultMessage）に準拠した構造化デ�
 }
 ```
 
-#### テキスト形式
+#### Text Format
 
-人間が読みやすい日本語レポート形式です。
+Human-readable report format.
 
 ```text
 ==========================================
-CCRun 実行結果レポート
+CCRun Execution Result Report
 ==========================================
 
-実行時刻: 2025-07-09 12:34:56
-セッションID: session-abc123
-ステータス: 成功 (success)
+Execution Time: 2025-07-09 12:34:56
+Session ID: session-abc123
+Status: Success (success)
 
-パフォーマンス情報:
-  実行時間: 2500ms
-  API時間: 2100ms
-  ターン数: 3
-  推定コスト: $0.0042
+Performance Information:
+  Execution Time: 2500ms
+  API Time: 2100ms
+  Number of Turns: 3
+  Estimated Cost: $0.0042
 
-トークン使用量:
-  入力トークン: 1250
-  出力トークン: 380
-  合計トークン: 1630
+Token Usage:
+  Input Tokens: 1250
+  Output Tokens: 380
+  Total Tokens: 1630
 
-結果:
-実行結果の内容
+Result:
+Execution result content
 
 ==========================================
 ```
 
-### 出力設定
+### Output Settings
 
-#### 設定項目
+#### Configuration Items
 
-- **outputFile**: 出力ファイルパス（設定されていると自動的に出力が有効化）
-- **outputFormat**: 出力形式（`json` または `text`）
-- **output.enabled**: ファイル出力の有効/無効
-- **output.directory**: 自動生成時の出力ディレクトリ
-- **output.filename.prefix**: 自動生成時のファイル名プレフィックス
-- **output.filename.suffix**: 自動生成時のファイル名サフィックス
+- **outputFile**: Output file path (automatically enables output when set)
+- **outputFormat**: Output format (`json` or `text`)
+- **output.enabled**: Enable/disable file output
+- **output.directory**: Output directory for auto-generation
+- **output.filename.prefix**: Filename prefix for auto-generation
+- **output.filename.suffix**: Filename suffix for auto-generation
 
-#### 優先順位
+#### Priority Order
 
-1. **最優先**: CLI引数（`--output-file`, `-o`, `--output`, `--output-enabled`）
-2. **次優先**: 設定ファイルの `outputFile`
-3. **その次**: 設定ファイルの `output.enabled: true`（自動生成）
-4. **最後**: デフォルト値（出力無効）
+1. **Highest**: CLI arguments (`--output-file`, `-o`, `--output`, `--output-enabled`)
+2. **Next**: `outputFile` in settings file
+3. **Then**: `output.enabled: true` in settings file (auto-generation)
+4. **Last**: Default value (output disabled)
 
-### デフォルト動作
+### Default Behavior
 
-- **出力有効化**: デフォルトでは無効（明示的に有効化が必要）
-- **出力先**: `./tmp/ccrun/results/`
-- **ファイル名**: `yyyyMMddHHmmss.json`形式（実行開始時刻）
-- **出力形式**: JSON
-- **ディレクトリ作成**: 指定された出力ディレクトリが存在しない場合は自動作成
-
----
-
-## 注意事項
-
-- Node.js v18以上推奨
-- @anthropic-ai/claude-code パッケージが必要
+- **Output Enabled**: Disabled by default (must be explicitly enabled)
+- **Output Location**: `./tmp/ccrun/results/`
+- **Filename**: `yyyyMMddHHmmss.json` format (execution start time)
+- **Output Format**: JSON
+- **Directory Creation**: Automatically creates output directory if it doesn't exist
 
 ---
 
-## ライセンス
+## Notes
+
+- Node.js v18 or higher recommended
+- Requires @anthropic-ai/claude-code package
+
+---
+
+## License
 
 MIT
