@@ -29,10 +29,10 @@ It supports direct prompts, file input, session continuation, and tool filtering
   --max-turns <number>        Maximum number of conversation turns (1-100)
   -c, --continue              Continue from the previous session
   --resume <session-id>       Resume a specific session by ID
-  --allowedTools <tools>      Comma-separated list of allowed tools
-  --disallowedTools <tools>   Comma-separated list of disallowed tools
+  --allowed-tools <tools>     Comma-separated list of allowed tools
+  --disallowed-tools <tools>  Comma-separated list of disallowed tools
   --permission-mode <mode>    Set permission mode (default|plan|acceptEdits|bypassPermissions)
-  -s, --settingsFile <file>   Specify custom settings file path
+  -s, --settings-file <file>  Specify custom settings file path
   --custom-system-prompt <p>  Custom system prompt for Claude
   -csp <prompt>               Short form of --custom-system-prompt
   -o [file]                   Output file path (with file) or enable auto-output (without file)
@@ -66,8 +66,8 @@ Available Tools:
   ccrun -i "Help me debug this code" --max-turns 5
 
   # Tool filtering
-  ccrun -i "Analyze this codebase" --allowedTools "Read,Grep,LS"
-  ccrun -i "Write documentation" --disallowedTools "Bash,WebFetch"
+  ccrun -i "Analyze this codebase" --allowed-tools "Read,Grep,LS"
+  ccrun -i "Write documentation" --disallowed-tools "Bash,WebFetch"
 
   # Permission mode
   ccrun -i "Help me refactor this code" --permission-mode acceptEdits
@@ -79,7 +79,7 @@ Available Tools:
   ccrun -i "Quick check"  # No output (default behavior)
 
   # Custom settings file
-  ccrun -i "Analyze the code" --settingsFile ./my-settings.json
+  ccrun -i "Analyze the code" --settings-file ./my-settings.json
   ccrun -i "Write tests" -s ../shared-settings.json
 
   # Custom system prompt
@@ -87,7 +87,7 @@ Available Tools:
   ccrun -i "Explain this" -csp "Focus on performance optimizations"
 
   # Multiple options
-  ccrun -f requirements.txt --max-turns 10 --allowedTools "Read,Write,Edit" -o results.json`;
+  ccrun -f requirements.txt --max-turns 10 --allowed-tools "Read,Write,Edit" -o results.json`;
   }
 
   static generateToolsHelp(): string {
@@ -115,8 +115,8 @@ Task Management:
   Task      - Launch sub-agents
 
 Tool Usage:
-  --allowedTools "Read,Write,Edit"     # Only allow these tools
-  --disallowedTools "Bash,WebFetch"    # Block these tools
+  --allowed-tools "Read,Write,Edit"     # Only allow these tools
+  --disallowed-tools "Bash,WebFetch"    # Block these tools
 
 Note: Tool names are case-sensitive`;
   }

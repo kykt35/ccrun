@@ -16,8 +16,14 @@ describe('ArgumentParser', () => {
       expect(args.prompt).toBeUndefined();
     });
 
-    it('should parse max turns argument', () => {
+    it('should parse max turns argument with kebab-case', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--max-turns', '10']);
+      
+      expect(args.maxTurns).toBe(10);
+    });
+
+    it('should parse max turns argument with camelCase', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--maxTurns', '10']);
       
       expect(args.maxTurns).toBe(10);
     });
@@ -34,14 +40,26 @@ describe('ArgumentParser', () => {
       expect(args.sessionId).toBe('session123');
     });
 
-    it('should parse allowed tools', () => {
+    it('should parse allowed tools with camelCase', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--allowedTools', 'Read,Write,Edit']);
       
       expect(args.allowedTools).toEqual(['Read', 'Write', 'Edit']);
     });
 
-    it('should parse disallowed tools', () => {
+    it('should parse allowed tools with kebab-case', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--allowed-tools', 'Read,Write,Edit']);
+      
+      expect(args.allowedTools).toEqual(['Read', 'Write', 'Edit']);
+    });
+
+    it('should parse disallowed tools with camelCase', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--disallowedTools', 'Bash,WebFetch']);
+      
+      expect(args.disallowedTools).toEqual(['Bash', 'WebFetch']);
+    });
+
+    it('should parse disallowed tools with kebab-case', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--disallowed-tools', 'Bash,WebFetch']);
       
       expect(args.disallowedTools).toEqual(['Bash', 'WebFetch']);
     });
@@ -93,8 +111,14 @@ describe('ArgumentParser', () => {
       expect(args.allowedTools).toEqual([]);
     });
 
-    it('should parse permission mode', () => {
+    it('should parse permission mode with kebab-case', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--permission-mode', 'plan']);
+      
+      expect(args.permissionMode).toBe('plan');
+    });
+
+    it('should parse permission mode with camelCase', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--permissionMode', 'plan']);
       
       expect(args.permissionMode).toBe('plan');
     });
@@ -114,8 +138,14 @@ describe('ArgumentParser', () => {
       expect(args.permissionMode).toBeUndefined();
     });
 
-    it('should parse settings file with --settingsFile flag', () => {
+    it('should parse settings file with --settingsFile flag (camelCase)', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--settingsFile', 'custom-settings.json']);
+      
+      expect(args.settingsFile).toBe('custom-settings.json');
+    });
+
+    it('should parse settings file with --settings-file flag (kebab-case)', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--settings-file', 'custom-settings.json']);
       
       expect(args.settingsFile).toBe('custom-settings.json');
     });
@@ -133,8 +163,14 @@ describe('ArgumentParser', () => {
       expect(args.outputFile).toBeUndefined();
     });
 
-    it('should parse output file with --output-file flag', () => {
+    it('should parse output file with --output-file flag (kebab-case)', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--output-file', 'output.json']);
+      
+      expect(args.outputFile).toBe('output.json');
+    });
+
+    it('should parse output file with --outputFile flag (camelCase)', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--outputFile', 'output.json']);
       
       expect(args.outputFile).toBe('output.json');
     });
@@ -154,20 +190,38 @@ describe('ArgumentParser', () => {
       expect(args.outputFormat).toBe('text');
     });
 
-    it('should parse output directory', () => {
+    it('should parse output directory with kebab-case', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--output-dir', './results']);
       
       expect(args.outputDir).toBe('./results');
     });
 
-    it('should parse output format json', () => {
+    it('should parse output directory with camelCase', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--outputDir', './results']);
+      
+      expect(args.outputDir).toBe('./results');
+    });
+
+    it('should parse output format json with kebab-case', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'json']);
       
       expect(args.outputFormat).toBe('json');
     });
 
-    it('should parse output format text', () => {
+    it('should parse output format json with camelCase', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--outputFormat', 'json']);
+      
+      expect(args.outputFormat).toBe('json');
+    });
+
+    it('should parse output format text with kebab-case', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'text']);
+      
+      expect(args.outputFormat).toBe('text');
+    });
+
+    it('should parse output format text with camelCase', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--outputFormat', 'text']);
       
       expect(args.outputFormat).toBe('text');
     });
@@ -192,8 +246,15 @@ describe('ArgumentParser', () => {
       expect(args.outputFile).toBeUndefined();
     });
 
-    it('should parse --output-enabled flag', () => {
+    it('should parse --output-enabled flag (kebab-case)', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--output-enabled']);
+      
+      expect(args.outputEnabled).toBe(true);
+      expect(args.outputFile).toBeUndefined();
+    });
+
+    it('should parse --outputEnabled flag (camelCase)', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--outputEnabled']);
       
       expect(args.outputEnabled).toBe(true);
       expect(args.outputFile).toBeUndefined();
@@ -226,8 +287,14 @@ describe('ArgumentParser', () => {
       expect(args.outputFile).toBeUndefined();
     });
 
-    it('should parse custom system prompt with --custom-system-prompt flag', () => {
+    it('should parse custom system prompt with --custom-system-prompt flag (kebab-case)', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '--custom-system-prompt', 'You are an expert']);
+      
+      expect(args.customSystemPrompt).toBe('You are an expert');
+    });
+
+    it('should parse custom system prompt with --customSystemPrompt flag (camelCase)', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--customSystemPrompt', 'You are an expert']);
       
       expect(args.customSystemPrompt).toBe('You are an expert');
     });
@@ -236,6 +303,24 @@ describe('ArgumentParser', () => {
       const args = ArgumentParser.parseArgs(['-i', 'test', '-csp', 'Focus on security']);
       
       expect(args.customSystemPrompt).toBe('Focus on security');
+    });
+
+    it('should parse mixed camelCase and kebab-case options', () => {
+      const args = ArgumentParser.parseArgs([
+        '-i', 'test prompt',
+        '--maxTurns', '5',
+        '--allowed-tools', 'Read,Write',
+        '--outputFile', 'output.json',
+        '--permission-mode', 'plan',
+        '--customSystemPrompt', 'Test prompt'
+      ]);
+      
+      expect(args.prompt).toBe('test prompt');
+      expect(args.maxTurns).toBe(5);
+      expect(args.allowedTools).toEqual(['Read', 'Write']);
+      expect(args.outputFile).toBe('output.json');
+      expect(args.permissionMode).toBe('plan');
+      expect(args.customSystemPrompt).toBe('Test prompt');
     });
 
     it('should parse custom system prompt with spaces', () => {

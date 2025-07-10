@@ -37,22 +37,22 @@ npx ccrun -i "Hello"
 
 #### Main Options
 
-- `-i, --input <prompt>`: Specify prompt directly(optional)
+- `-i, --input <prompt>`: Specify prompt directly (optional)
 - `-f, --file <file>`: Read prompt from file
-- `--max-turns <number>`: Specify maximum number of turns
 - `-c, --continue`: Continue session
+- `-h, --help`: Show help
+- `--max-turns <number>`: Specify maximum number of turns
 - `--resume <session-id>`: Resume from session ID
-- `--allowedTools <tools>`: Specify allowed tools (comma-separated)
-- `--disallowedTools <tools>`: Specify disallowed tools (comma-separated)
-- `--custom-system-prompt <prompt>`: Custom system prompt for Claude
-- `-csp <prompt>`: Short form of --custom-system-prompt
-- `--settingsFile <filePath>`, `-s <filePath>`: Specify settings file
+- `--allowed-tools <tools>`: Specify allowed tools (comma-separated)
+- `--disallowed-tools <tools>`: Specify disallowed tools (comma-separated)
+- `--permission-mode <mode>`: Set permission mode (default|plan|acceptEdits|bypassPermissions)
+- `-s, --settings-file <file>`: Specify settings file
+- `-csp, --custom-system-prompt <prompt>`: Custom system prompt for Claude
 - `-o, --output`: Enable output with auto-generated filename
-- `--output-file <file>`: Specify output file path (explicit)
-- `--output-enabled`: Enable output (same as `--output`)
+- `--output-file <file>`: Specify output file path
 - `--output-dir <directory>`: Specify output directory (default: ./tmp/ccrun/results)
 - `--output-format <format>`: Output format (json|text, default: json)
-- `-h, --help`: Show help
+- `--output-enabled`: Enable output (same as --output)
 
 ### Examples
 
@@ -113,20 +113,20 @@ claude --resume <session-id>
 
 ```bash
 # Allow specific tools only
-npx ccrun -i "Read the file" --allowedTools "Read,Write"
+npx ccrun -i "Read the file" --allowed-tools "Read,Write"
 
 # Disallow specific tools
-npx ccrun -i "Execute the code" --disallowedTools "Bash"
+npx ccrun -i "Execute the code" --disallowed-tools "Bash"
 
 # Combine multiple tools
-npx ccrun -i "Analyze the project" --allowedTools "Read,Grep,Glob" --disallowedTools "Write,Edit"
+npx ccrun -i "Analyze the project" --allowed-tools "Read,Grep,Glob" --disallowed-tools "Write,Edit"
 ```
 
 #### Using Settings Files
 
 ```bash
 # Specify custom settings file
-npx ccrun -i "Read the file" --settingsFile ./my-settings.json
+npx ccrun -i "Read the file" --settings-file ./my-settings.json
 
 # Short form also available
 npx ccrun -i "Analyze the project" -s ../shared-settings.json
