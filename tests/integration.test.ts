@@ -67,6 +67,82 @@ describe('Integration Tests', () => {
 
       consoleSpy.mockRestore();
     });
+
+    it('should handle custom system prompt argument parsing', async () => {
+      const cli = new CLIManager();
+      
+      // Mock the core service execution to prevent actual API calls
+      const mockExecute = jest.fn().mockImplementation(async function* () {
+        yield { type: 'system', session_id: 'test-session' };
+        return { success: true, messages: [], sessionId: 'test-session' };
+      });
+      (cli as any).ccrunService.execute = mockExecute;
+
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      await cli.run(['-i', 'test prompt', '--custom-system-prompt', 'You are an expert']);
+
+      expect(mockExecute).toHaveBeenCalledWith('test prompt', undefined, 
+        expect.objectContaining({
+          customSystemPrompt: 'You are an expert'
+        })
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle custom system prompt with short flag', async () => {
+      const cli = new CLIManager();
+      
+      // Mock the core service execution to prevent actual API calls
+      const mockExecute = jest.fn().mockImplementation(async function* () {
+        yield { type: 'system', session_id: 'test-session' };
+        return { success: true, messages: [], sessionId: 'test-session' };
+      });
+      (cli as any).ccrunService.execute = mockExecute;
+
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      await cli.run(['-i', 'test prompt', '-csp', 'Focus on security']);
+
+      expect(mockExecute).toHaveBeenCalledWith('test prompt', undefined, 
+        expect.objectContaining({
+          customSystemPrompt: 'Focus on security'
+        })
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle multiple options including custom system prompt', async () => {
+      const cli = new CLIManager();
+      
+      // Mock the core service execution to prevent actual API calls
+      const mockExecute = jest.fn().mockImplementation(async function* () {
+        yield { type: 'system', session_id: 'test-session' };
+        return { success: true, messages: [], sessionId: 'test-session' };
+      });
+      (cli as any).ccrunService.execute = mockExecute;
+
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      await cli.run([
+        '-i', 'test prompt', 
+        '--custom-system-prompt', 'You are an expert',
+        '--max-turns', '10',
+        '--allowedTools', 'Read,Write'
+      ]);
+
+      expect(mockExecute).toHaveBeenCalledWith('test prompt', undefined, 
+        expect.objectContaining({
+          customSystemPrompt: 'You are an expert',
+          maxTurns: 10,
+          allowedTools: ['Read', 'Write']
+        })
+      );
+
+      consoleSpy.mockRestore();
+    });
   });
 
   describe('Architecture Layer Integration', () => {

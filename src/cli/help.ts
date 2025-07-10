@@ -33,6 +33,8 @@ It supports direct prompts, file input, session continuation, and tool filtering
   --disallowedTools <tools>   Comma-separated list of disallowed tools
   --permission-mode <mode>    Set permission mode (default|plan|acceptEdits|bypassPermissions)
   -s, --settingFile <file>    Specify custom settings file path
+  --custom-system-prompt <p>  Custom system prompt for Claude
+  -csp <prompt>               Short form of --custom-system-prompt
   -o [file]                   Output file path (with file) or enable auto-output (without file)
   --output-file <file>        Output file path for results (enables output)
   --output-dir <directory>    Output directory for results (default: ./tmp/ccrun/results)
@@ -79,6 +81,10 @@ Available Tools:
   # Custom settings file
   ccrun -i "Analyze the code" --settingFile ./my-settings.json
   ccrun -i "Write tests" -s ../shared-settings.json
+
+  # Custom system prompt
+  ccrun -i "Review this code" --custom-system-prompt "You are a security expert"
+  ccrun -i "Explain this" -csp "Focus on performance optimizations"
 
   # Multiple options
   ccrun -f requirements.txt --max-turns 10 --allowedTools "Read,Write,Edit" -o results.json`;

@@ -8,6 +8,7 @@ export interface CCRunConfig {
   continue?: boolean;
   resume?: string;
   permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
+  customSystemPrompt?: string;
 }
 
 export interface ToolPermissions {
@@ -31,6 +32,7 @@ export interface Settings {
       suffix?: string;
     };
   };
+  customSystemPrompt?: string;
   [key: string]: any;
 }
 

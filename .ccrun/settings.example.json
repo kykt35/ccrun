@@ -4,12 +4,13 @@
     "deny": ["Bash", "WebFetch", "WebSearch"]
   },
   "maxTurns": 30,
+  "customSystemPrompt": "You are an experienced software engineer with expertise in code analysis and refactoring",
   "output": {
     "enabled": true,
     "directory": "./tmp/test",
     "filename": {
-      "prefix": "test",
-      "suffix": "suf"
+      "prefix": "pre_",
+      "suffix": "_suf"
     }
   }
 }

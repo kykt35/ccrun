@@ -12,7 +12,7 @@ export class ConfigManager {
 
   static async loadSettings(customPath?: string): Promise<Settings | null> {
     const baseDir = process.cwd();
-    
+
     // 1. 引数で指定されたファイルを最優先
     if (customPath) {
       const absPath = join(baseDir, customPath);
@@ -31,7 +31,7 @@ export class ConfigManager {
         process.exit(1);
       }
     }
-    
+
     // 2. デフォルトのファイルを順番にチェック
     for (const relPath of this.SETTINGS_PATHS) {
       const absPath = join(baseDir, relPath);
@@ -62,15 +62,15 @@ export class ConfigManager {
     const mergedDenied = [...new Set([...cliDenied, ...settingsDenied])];
 
     const result: ToolPermissions = {};
-    
+
     if (mergedAllowed.length > 0) {
       result.allowedTools = mergedAllowed;
     }
-    
+
     if (mergedDenied.length > 0) {
       result.disallowedTools = mergedDenied;
     }
-    
+
     return result;
   }
 
@@ -154,10 +154,10 @@ export class ConfigManager {
     options: Partial<CCRunConfig> = {}
   ): Promise<CCRunConfig> {
     // If tool permissions are already provided (from CLI layer), don't reload settings
-    const settings = (options.allowedTools !== undefined || options.disallowedTools !== undefined) 
-      ? null 
+    const settings = (options.allowedTools !== undefined || options.disallowedTools !== undefined)
+      ? null
       : await this.loadSettings();
-    
+
     const toolPermissions = this.mergeToolPermissions(
       options.allowedTools,
       options.disallowedTools,
@@ -184,6 +184,10 @@ export class ConfigManager {
 
     if (options.resume !== undefined) {
       config.resume = options.resume;
+    }
+
+    if (options.customSystemPrompt !== undefined) {
+      config.customSystemPrompt = options.customSystemPrompt;
     }
 
     if (!this.validateConfig(config)) {

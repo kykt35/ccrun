@@ -40,6 +40,11 @@ export class CLIManager {
       const cliDenied = args.disallowedTools || [];
       const toolPermissions = ConfigManager.mergeToolPermissions(cliAllowed, cliDenied, settings);
 
+      // Override customSystemPrompt from settings if not provided via CLI
+      if (!args.customSystemPrompt && settings?.customSystemPrompt) {
+        args.customSystemPrompt = settings.customSystemPrompt;
+      }
+
       // Process output settings
       const outputSettings = await this.processOutputSettings(args, settings);
 
@@ -52,6 +57,14 @@ export class CLIManager {
       console.log(`allowedTools: ${allowedTools.join(', ') || '(none specified)'}`);
       console.log(`disallowedTools: ${disallowedTools.join(', ') || '(none specified)'}`);
 
+      // Display custom system prompt if provided
+      if (args.customSystemPrompt) {
+        const truncatedPrompt = args.customSystemPrompt.length > 50
+          ? args.customSystemPrompt.substring(0, 50) + '...'
+          : args.customSystemPrompt;
+        console.log(`customSystemPrompt: "${truncatedPrompt}"`);
+      }
+
       // Display output settings
       if (outputSettings.outputFile) {
         console.log(`output: ${outputSettings.outputFile === 'auto-generate' ? 'auto-generated' : outputSettings.outputFile} (${outputSettings.outputFormat})`);
@@ -61,7 +74,6 @@ export class CLIManager {
 
       // Convert CLI args to core config with merged tool permissions
       const config = { ...this.argsToConfig(args), ...toolPermissions };
-
       // Check for bypassPermissions mode and ask for confirmation
       if (config.permissionMode === 'bypassPermissions') {
         const confirmed = await this.confirmBypassPermissions();
@@ -164,6 +176,10 @@ export class CLIManager {
 
     if (args.permissionMode) {
       config.permissionMode = args.permissionMode;
+    }
+
+    if (args.customSystemPrompt) {
+      config.customSystemPrompt = args.customSystemPrompt;
     }
 
     return config;

@@ -182,9 +182,9 @@ describe('DisplayManager', () => {
       const formatted = DisplayManager.formatSessionInfo(sessionId);
 
       expect(formatted).toContain('🔗 Session ID: test-session-123');
-      expect(formatted).toContain('💡 Continue with:');
-      expect(formatted).toContain('ccrun --continue');
-      expect(formatted).toContain('ccrun --resume test-session-123');
+      expect(formatted).toContain('💡 Continue with claude:');
+      expect(formatted).toContain('claude --continue');
+      expect(formatted).toContain('claude --resume test-session-123');
     });
   });
 
