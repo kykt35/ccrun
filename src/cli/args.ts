@@ -20,16 +20,16 @@ export interface CLIArgs {
 
 export class ArgumentParser {
   private static consumeNextArg(
-    argv: string[], 
-    currentIndex: number, 
-    optionName: string, 
+    argv: string[],
+    currentIndex: number,
+    optionName: string,
     consumed: Set<number>
   ): string {
     if (currentIndex + 1 >= argv.length) {
       throw new Error(`Option ${optionName} requires a value`);
     }
     const nextArg = argv[currentIndex + 1];
-    if (nextArg === undefined) {
+    if (nextArg === undefined || nextArg.startsWith('-')) {
       throw new Error(`Option ${optionName} requires a value`);
     }
     consumed.add(currentIndex);
@@ -81,7 +81,6 @@ export class ArgumentParser {
         args.settingsFile = this.consumeNextArg(argv, i, '--settingsFile/--settings-file/-s', consumed);
         i++;
       } else if (arg === '-o' || arg === '--output') {
-        // -o always acts as --output (enable output with auto-generated filename)
         args.outputEnabled = true;
         consumed.add(i);
       } else if (arg === '--output-file' || arg === '--outputFile') {
