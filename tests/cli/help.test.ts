@@ -55,8 +55,8 @@ describe('HelpManager', () => {
       expect(options).toContain('--max-turns');
       expect(options).toContain('-c, --continue');
       expect(options).toContain('--resume');
-      expect(options).toContain('--allowedTools');
-      expect(options).toContain('--disallowedTools');
+      expect(options).toContain('--allowed-tools');
+      expect(options).toContain('--disallowed-tools');
       expect(options).toContain('-h, --help');
     });
 
@@ -80,8 +80,8 @@ describe('HelpManager', () => {
       expect(examples).toContain('ccrun -f prompt.txt');
       expect(examples).toContain('ccrun --continue');
       expect(examples).toContain('ccrun --resume');
-      expect(examples).toContain('--allowedTools');
-      expect(examples).toContain('--disallowedTools');
+      expect(examples).toContain('--allowed-tools');
+      expect(examples).toContain('--disallowed-tools');
     });
 
     it('should show various use cases', () => {
@@ -108,8 +108,8 @@ describe('HelpManager', () => {
     it('should include tool usage examples', () => {
       const toolsHelp = HelpManager.generateToolsHelp();
       
-      expect(toolsHelp).toContain('--allowedTools');
-      expect(toolsHelp).toContain('--disallowedTools');
+      expect(toolsHelp).toContain('--allowed-tools');
+      expect(toolsHelp).toContain('--disallowed-tools');
       expect(toolsHelp).toContain('case-sensitive');
     });
   });

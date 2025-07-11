@@ -19,6 +19,24 @@ export interface CLIArgs {
 }
 
 export class ArgumentParser {
+  private static consumeNextArg(
+    argv: string[],
+    currentIndex: number,
+    optionName: string,
+    consumed: Set<number>
+  ): string {
+    if (currentIndex + 1 >= argv.length) {
+      throw new Error(`Option ${optionName} requires a value`);
+    }
+    const nextArg = argv[currentIndex + 1];
+    if (nextArg === undefined || nextArg.startsWith('-')) {
+      throw new Error(`Option ${optionName} requires a value`);
+    }
+    consumed.add(currentIndex);
+    consumed.add(currentIndex + 1);
+    return nextArg;
+  }
+
   static parseArgs(argv: string[] = process.argv.slice(2)): CLIArgs {
     const args: CLIArgs = {};
     let consumed = new Set<number>();
@@ -27,105 +45,65 @@ export class ArgumentParser {
       const arg = argv[i];
 
       if (arg === '-i' || arg === '--input') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined) {
-          args.prompt = nextArg;
-        }
-        consumed.add(i - 1);
-        consumed.add(i);
+        args.prompt = this.consumeNextArg(argv, i, '-i/--input', consumed);
+        i++;
       } else if (arg === '-f' || arg === '--file') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined) {
-          args.inputFile = nextArg;
+        args.inputFile = this.consumeNextArg(argv, i, '-f/--file', consumed);
+        i++;
+      } else if (arg === '--max-turns' || arg === '--maxTurns') {
+        const nextArg = this.consumeNextArg(argv, i, '--max-turns/--maxTurns', consumed);
+        const maxTurns = parseInt(nextArg, 10);
+        if (!isNaN(maxTurns)) {
+          args.maxTurns = maxTurns;
         }
-        consumed.add(i - 1);
-        consumed.add(i);
-      } else if (arg === '--max-turns') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined) {
-          const maxTurns = parseInt(nextArg, 10);
-          if (!isNaN(maxTurns)) {
-            args.maxTurns = maxTurns;
-          }
-        }
-        consumed.add(i - 1);
-        consumed.add(i);
+        i++;
       } else if (arg === '-c' || arg === '--continue') {
         args.continue = true;
         consumed.add(i);
       } else if (arg === '--resume') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined) {
-          args.sessionId = nextArg;
-        }
-        consumed.add(i - 1);
-        consumed.add(i);
-      } else if (arg === '--allowedTools') {
-        const tools = argv[++i];
-        if (tools !== undefined) {
-          args.allowedTools = tools.replace(/\s/g, '').split(',').filter(t => t.length > 0);
-        }
-        consumed.add(i - 1);
-        consumed.add(i);
-      } else if (arg === '--disallowedTools') {
-        const tools = argv[++i];
-        if (tools !== undefined) {
-          args.disallowedTools = tools.replace(/\s/g, '').split(',').filter(t => t.length > 0);
-        }
-        consumed.add(i - 1);
-        consumed.add(i);
-      } else if (arg === '--permission-mode') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined && ValidationUtils.validatePermissionMode(nextArg)) {
+        args.sessionId = this.consumeNextArg(argv, i, '--resume', consumed);
+        i++;
+      } else if (arg === '--allowedTools' || arg === '--allowed-tools') {
+        const tools = this.consumeNextArg(argv, i, '--allowedTools/--allowed-tools', consumed);
+        args.allowedTools = tools.replace(/\s/g, '').split(',').filter(t => t.length > 0);
+        i++;
+      } else if (arg === '--disallowedTools' || arg === '--disallowed-tools') {
+        const tools = this.consumeNextArg(argv, i, '--disallowedTools/--disallowed-tools', consumed);
+        args.disallowedTools = tools.replace(/\s/g, '').split(',').filter(t => t.length > 0);
+        i++;
+      } else if (arg === '--permission-mode' || arg === '--permissionMode') {
+        const nextArg = this.consumeNextArg(argv, i, '--permission-mode/--permissionMode', consumed);
+        if (ValidationUtils.validatePermissionMode(nextArg)) {
           args.permissionMode = nextArg as 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
         }
-        consumed.add(i - 1);
-        consumed.add(i);
-      } else if (arg === '--settingsFile' || arg === '-s') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined) {
-          args.settingsFile = nextArg;
-        }
-        consumed.add(i - 1);
-        consumed.add(i);
+        i++;
+      } else if (arg === '--settingsFile' || arg === '--settings-file' || arg === '-s') {
+        args.settingsFile = this.consumeNextArg(argv, i, '--settingsFile/--settings-file/-s', consumed);
+        i++;
       } else if (arg === '-o' || arg === '--output') {
-        // -o always acts as --output (enable output with auto-generated filename)
         args.outputEnabled = true;
         consumed.add(i);
-      } else if (arg === '--output-file') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined) {
-          args.outputFile = nextArg;
-        }
-        consumed.add(i - 1);
-        consumed.add(i);
-      } else if (arg === '--output-dir') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined) {
-          args.outputDir = nextArg;
-        }
-        consumed.add(i - 1);
-        consumed.add(i);
-      } else if (arg === '--output-format') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined && (nextArg === 'json' || nextArg === 'text')) {
+      } else if (arg === '--output-file' || arg === '--outputFile') {
+        args.outputFile = this.consumeNextArg(argv, i, '--output-file/--outputFile', consumed);
+        i++;
+      } else if (arg === '--output-dir' || arg === '--outputDir') {
+        args.outputDir = this.consumeNextArg(argv, i, '--output-dir/--outputDir', consumed);
+        i++;
+      } else if (arg === '--output-format' || arg === '--outputFormat') {
+        const nextArg = this.consumeNextArg(argv, i, '--output-format/--outputFormat', consumed);
+        if (nextArg === 'json' || nextArg === 'text') {
           args.outputFormat = nextArg;
         }
-        consumed.add(i - 1);
-        consumed.add(i);
-      } else if (arg === '--output-enabled') {
+        i++;
+      } else if (arg === '--output-enabled' || arg === '--outputEnabled') {
         args.outputEnabled = true;
         consumed.add(i);
       } else if (arg === '-h' || arg === '--help') {
         args.help = true;
         consumed.add(i);
-      } else if (arg === '--custom-system-prompt' || arg === '-csp') {
-        const nextArg = argv[++i];
-        if (nextArg !== undefined) {
-          args.customSystemPrompt = nextArg;
-        }
-        consumed.add(i - 1);
-        consumed.add(i);
+      } else if (arg === '--custom-system-prompt' || arg === '--customSystemPrompt' || arg === '-csp') {
+        args.customSystemPrompt = this.consumeNextArg(argv, i, '--custom-system-prompt/--customSystemPrompt/-csp', consumed);
+        i++;
       }
     }
 
