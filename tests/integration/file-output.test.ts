@@ -91,14 +91,11 @@ describe('File Output Integration Tests', () => {
   });
 
   describe('Error handling integration', () => {
-    it('should handle invalid output format gracefully', () => {
-      const args = ArgumentParser.parseArgs([
+    it('should throw error for invalid output format', () => {
+      expect(() => ArgumentParser.parseArgs([
         '-i', 'test',
         '--output-format', 'invalid'
-      ]);
-
-      expect(args.outputFormat).toBeUndefined();
-      expect(ArgumentParser.validateArgs(args)).toBe(true); // Should still be valid without format
+      ])).toThrow('Invalid value for --output-format/--outputFormat: "invalid". Expected "json" or "text"');
     });
 
     it('should handle empty output paths', () => {
@@ -302,14 +299,11 @@ describe('File Output Integration Tests', () => {
       expect(ArgumentParser.validateArgs(args)).toBe(true);
     });
 
-    it('should handle case sensitivity', () => {
-      const args = ArgumentParser.parseArgs([
+    it('should throw error for wrong case in output format', () => {
+      expect(() => ArgumentParser.parseArgs([
         '-i', 'test',
         '--output-format', 'JSON' // Wrong case
-      ]);
-
-      expect(args.outputFormat).toBeUndefined(); // Should be ignored
-      expect(ArgumentParser.validateArgs(args)).toBe(true);
+      ])).toThrow('Invalid value for --output-format/--outputFormat: "JSON". Expected "json" or "text"');
     });
 
     it('should handle very long paths', () => {

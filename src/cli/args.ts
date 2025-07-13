@@ -25,6 +25,7 @@ interface ArgDefinition {
   handler: (value: string | undefined, args: CLIArgs) => void;
   validator?: (value: string) => boolean;
   errorName?: string; // For maintaining original error message format
+  expectedDescription?: string; // Description of expected value format
 }
 
 export class ArgumentParser {
@@ -51,7 +52,8 @@ export class ArgumentParser {
         }
       },
       validator: (value) => !isNaN(parseInt(value, 10)),
-      errorName: '--max-turns/--maxTurns'
+      errorName: '--max-turns/--maxTurns',
+      expectedDescription: 'Expected a positive integer'
     },
     {
       aliases: ['-c', '--continue'],
@@ -62,7 +64,9 @@ export class ArgumentParser {
       aliases: ['--resume'],
       hasValue: true,
       handler: (value, args) => { if (value !== undefined) args.sessionId = value; },
-      errorName: '--resume'
+      validator: (value) => ValidationUtils.validateSessionId(value),
+      errorName: '--resume',
+      expectedDescription: 'Expected a valid session ID (alphanumeric, underscore, hyphen, max 100 chars)'
     },
     {
       aliases: ['--allowedTools', '--allowed-tools'],
@@ -72,7 +76,12 @@ export class ArgumentParser {
           args.allowedTools = value.replace(/\s/g, '').split(',').filter(t => t.length > 0);
         }
       },
-      errorName: '--allowedTools/--allowed-tools'
+      validator: (value) => {
+        const tools = value.replace(/\s/g, '').split(',').filter(t => t.length > 0);
+        return ValidationUtils.validateToolList(tools);
+      },
+      errorName: '--allowedTools/--allowed-tools',
+      expectedDescription: 'Expected comma-separated list of valid tool names (e.g., "Read,Write,Bash")'
     },
     {
       aliases: ['--disallowedTools', '--disallowed-tools'],
@@ -82,7 +91,12 @@ export class ArgumentParser {
           args.disallowedTools = value.replace(/\s/g, '').split(',').filter(t => t.length > 0);
         }
       },
-      errorName: '--disallowedTools/--disallowed-tools'
+      validator: (value) => {
+        const tools = value.replace(/\s/g, '').split(',').filter(t => t.length > 0);
+        return ValidationUtils.validateToolList(tools);
+      },
+      errorName: '--disallowedTools/--disallowed-tools',
+      expectedDescription: 'Expected comma-separated list of valid tool names (e.g., "Read,Write,Bash")'
     },
     {
       aliases: ['--permission-mode', '--permissionMode'],
@@ -92,7 +106,9 @@ export class ArgumentParser {
           args.permissionMode = value as 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
         }
       },
-      errorName: '--permission-mode/--permissionMode'
+      validator: (value) => ValidationUtils.validatePermissionMode(value),
+      errorName: '--permission-mode/--permissionMode',
+      expectedDescription: 'Expected "default", "acceptEdits", "bypassPermissions", or "plan"'
     },
     {
       aliases: ['--settingsFile', '--settings-file', '-s'],
@@ -126,7 +142,8 @@ export class ArgumentParser {
         }
       },
       validator: (value) => value === 'json' || value === 'text',
-      errorName: '--output-format/--outputFormat'
+      errorName: '--output-format/--outputFormat',
+      expectedDescription: 'Expected "json" or "text"'
     },
     {
       aliases: ['--output-enabled', '--outputEnabled'],
@@ -182,10 +199,12 @@ export class ArgumentParser {
             throw new Error(`Option ${errorName} requires a value`);
           }
           
-          // Only process if validation passes (or no validator exists)
-          if (!definition.validator || definition.validator(nextArg)) {
-            definition.handler(nextArg, args);
+          // Validate value if validator exists
+          if (definition.validator && !definition.validator(nextArg)) {
+            throw new Error(`Invalid value for ${errorName}: "${nextArg}". ${this.getExpectedValueDescription(definition)}`);
           }
+          
+          definition.handler(nextArg, args);
           
           processedIndices.add(i + 1);
           i++; // Skip next argument as it's the value
@@ -209,6 +228,10 @@ export class ArgumentParser {
     }
 
     return args;
+  }
+
+  private static getExpectedValueDescription(definition: ArgDefinition): string {
+    return definition.expectedDescription || 'Expected a valid value';
   }
 
   static validateArgs(args: CLIArgs): boolean {
