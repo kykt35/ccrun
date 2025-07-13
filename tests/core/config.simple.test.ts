@@ -241,16 +241,16 @@ describe('ConfigManager', () => {
       expect(result.outputFormat).toBe('text');
     });
 
-    it('should default to json format when no format is specified', () => {
+    it('should default to text format when no format is specified', () => {
       const result = ConfigManager.mergeOutputSettings(
-        'output.json',
+        'output.txt',
         './results',
         undefined,
         false,
         null
       );
 
-      expect(result.outputFormat).toBe('json');
+      expect(result.outputFormat).toBe('text');
     });
 
     it('should enable output when CLI output file is provided', () => {
@@ -315,7 +315,7 @@ describe('ConfigManager', () => {
       );
 
       expect(result.outputFile).toBe('./auto/output.json');
-      expect(result.outputFormat).toBe('json');
+      expect(result.outputFormat).toBe('text');
     });
 
     it('should prioritize outputFile over output.enabled when both are provided', () => {
@@ -336,7 +336,7 @@ describe('ConfigManager', () => {
       );
 
       expect(result.outputFile).toBe('./specific/file.json');
-      expect(result.outputFormat).toBe('json');
+      expect(result.outputFormat).toBe('text');
     });
   });
 

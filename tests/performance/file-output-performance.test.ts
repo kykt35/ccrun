@@ -46,7 +46,7 @@ describe('File Output Performance Tests', () => {
   describe('Large data handling', () => {
     it('should handle 1MB result data efficiently', async () => {
       const largeResult = createLargeSDKResult(1024 * 1024); // 1MB
-      const testFile = join(testDir, 'large-1mb.json');
+      const testFile = join(testDir, 'large-1mb.txt');
       
       const startTime = Date.now();
       await FileOutputManager.writeResult(testFile, largeResult);
@@ -61,7 +61,7 @@ describe('File Output Performance Tests', () => {
 
     it('should handle 10MB result data', async () => {
       const largeResult = createLargeSDKResult(10 * 1024 * 1024); // 10MB
-      const testFile = join(testDir, 'large-10mb.json');
+      const testFile = join(testDir, 'large-10mb.txt');
       
       const startTime = Date.now();
       await FileOutputManager.writeResult(testFile, largeResult);
@@ -86,7 +86,7 @@ describe('File Output Performance Tests', () => {
       expect(duration).toBeLessThan(5000);
       
       const content = await fs.readFile(testFile, 'utf-8');
-      expect(content).toContain('CCRun 実行結果レポート');
+      expect(content).toContain('--- Execution Summary ---');
       expect(content.length).toBeGreaterThan(1024 * 1024);
     });
   });
@@ -101,7 +101,7 @@ describe('File Output Performance Tests', () => {
       
       const promises = results.map((result, i) => 
         FileOutputManager.writeResult(
-          join(testDir, `concurrent-${i}.json`),
+          join(testDir, `concurrent-${i}.txt`),
           result
         )
       );
@@ -124,7 +124,7 @@ describe('File Output Performance Tests', () => {
       
       for (let i = 0; i < 100; i++) {
         await FileOutputManager.writeResult(
-          join(testDir, `sequential-${i}.json`),
+          join(testDir, `sequential-${i}.txt`),
           result
         );
       }
@@ -158,7 +158,7 @@ describe('File Output Performance Tests', () => {
       // Resolve 1000 paths
       for (let i = 0; i < 1000; i++) {
         FileOutputManager.resolveOutputPath(
-          `output-${i}.json`,
+          `output-${i}.txt`,
           './results',
           false,
           settings
@@ -206,7 +206,7 @@ describe('File Output Performance Tests', () => {
       // Write multiple large files
       for (let i = 0; i < 10; i++) {
         const largeResult = createLargeSDKResult(1024 * 1024); // 1MB each
-        const testFile = join(testDir, `memory-test-${i}.json`);
+        const testFile = join(testDir, `memory-test-${i}.txt`);
         
         await FileOutputManager.writeResult(testFile, largeResult);
         
@@ -238,7 +238,7 @@ describe('File Output Performance Tests', () => {
         
         // Now try to write a file
         const result = createLargeSDKResult(1024 * 100); // 100KB
-        const testFile = join(testDir, 'memory-pressure.json');
+        const testFile = join(testDir, 'memory-pressure.txt');
         
         await expect(
           FileOutputManager.writeResult(testFile, result)
@@ -270,7 +270,7 @@ describe('File Output Performance Tests', () => {
       expect(duration).toBeLessThan(5000);
       
       const content = await fs.readFile(testFile, 'utf-8');
-      expect(content).toContain('CCRun 実行結果レポート');
+      expect(content).toContain('--- Execution Summary ---');
       expect(content).toContain('x'.repeat(100)); // Should contain part of the large result
     });
 
@@ -302,7 +302,7 @@ describe('File Output Performance Tests', () => {
       expect(duration).toBeLessThan(1000);
       
       const content = await fs.readFile(testFile, 'utf-8');
-      expect(content).toContain('999999'); // Should format numbers without commas in text format
+      expect(content).toContain('999,999'); // Numbers are formatted with commas in text format
       expect(content).toContain('日本語テスト'); // Should handle unicode
     });
   });

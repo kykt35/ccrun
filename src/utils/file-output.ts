@@ -6,7 +6,7 @@ export class FileOutputManager {
   static async writeResult(
     filePath: string,
     result: SDKResultMessage,
-    format: 'json' | 'text' = 'json',
+    format: 'json' | 'text' = 'text',
     config?: CCRunConfig
   ): Promise<void> {
     await this.ensureDirectoryExists(filePath);
@@ -50,7 +50,7 @@ export class FileOutputManager {
       (typeof settings?.output?.directory === 'string' ? settings.output.directory : null) ||
       this.getDefaultOutputDirectory();
     const format = (settings?.outputFormat === 'json' || settings?.outputFormat === 'text') ?
-      settings.outputFormat : 'json';
+      settings.outputFormat : 'text';
     const prefix = (typeof settings?.output?.filename?.prefix === 'string') ?
       settings.output.filename.prefix : '';
     const suffix = (typeof settings?.output?.filename?.suffix === 'string') ?
@@ -106,7 +106,7 @@ export class FileOutputManager {
 
   private static formatSDKResultAsText(result: SDKResultMessage): string {
     const timestamp = new Date().toLocaleString();
-    const status = result.is_error ? 'エラー' : '成功';
+    const status = result.is_error ? 'Error' : 'Success';
     const subtype = result.subtype === 'success' ? 'success' :
                    result.subtype === 'error_max_turns' ? 'error_max_turns' :
                    'error_during_execution';
@@ -119,29 +119,23 @@ export class FileOutputManager {
         : 'Error occurred during execution';
 
     const sections = [
-      '==========================================',
-      'CCRun 実行結果レポート',
-      '==========================================',
+      '--- Execution Summary ---',
+      `Session ID     : ${result.session_id}`,
+      `Status         : ${status} (${subtype})`,
+      `Timestamp      : ${timestamp}`,
+      `Execution Time : ${result.duration_ms ?? 0}ms`,
+      `API Time       : ${result.duration_api_ms ?? 0}ms`,
+      `Turn Count     : ${result.num_turns ?? 0}`,
+      `Estimated Cost : $${(result.total_cost_usd ?? 0).toFixed(4)}`,
       '',
-      `実行時刻: ${timestamp}`,
-      `セッションID: ${result.session_id}`,
-      `ステータス: ${status} (${subtype})`,
+      '--- Token Usage ---',
+      `Input Tokens   : ${(result.usage?.input_tokens ?? 0).toLocaleString()}`,
+      `Output Tokens  : ${(result.usage?.output_tokens ?? 0).toLocaleString()}`,
+      `Total Tokens   : ${(result.usage?.total_tokens ?? (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0)).toLocaleString()}`,
       '',
-      'パフォーマンス情報:',
-      `  実行時間: ${result.duration_ms}ms`,
-      `  API時間: ${result.duration_api_ms}ms`,
-      `  ターン数: ${result.num_turns}`,
-      `  推定コスト: $${result.total_cost_usd.toFixed(4)}`,
-      '',
-      'トークン使用量:',
-      `  入力トークン: ${result.usage.input_tokens}`,
-      `  出力トークン: ${result.usage.output_tokens}`,
-      `  合計トークン: ${result.usage.total_tokens}`,
-      '',
-      '結果:',
+      '--- Result ---',
       resultContent,
       '',
-      '=========================================='
     ];
 
     return sections.join('\n');
