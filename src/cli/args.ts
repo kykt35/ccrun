@@ -19,7 +19,139 @@ export interface CLIArgs {
   systemPromptFile?: string;
 }
 
+interface ArgDefinition {
+  aliases: string[];
+  hasValue: boolean;
+  handler: (value: string | undefined, args: CLIArgs) => void;
+  validator?: (value: string) => boolean;
+  errorName?: string; // For maintaining original error message format
+}
+
 export class ArgumentParser {
+  private static readonly ARG_DEFINITIONS: ArgDefinition[] = [
+    {
+      aliases: ['-i', '--input'],
+      hasValue: true,
+      handler: (value, args) => { if (value !== undefined) args.prompt = value; },
+      errorName: '-i/--input'
+    },
+    {
+      aliases: ['-f', '--file'],
+      hasValue: true,
+      handler: (value, args) => { if (value !== undefined) args.inputFile = value; },
+      errorName: '-f/--file'
+    },
+    {
+      aliases: ['--max-turns', '--maxTurns'],
+      hasValue: true,
+      handler: (value, args) => {
+        if (value) {
+          const maxTurns = parseInt(value, 10);
+          if (!isNaN(maxTurns)) args.maxTurns = maxTurns;
+        }
+      },
+      validator: (value) => !isNaN(parseInt(value, 10)),
+      errorName: '--max-turns/--maxTurns'
+    },
+    {
+      aliases: ['-c', '--continue'],
+      hasValue: false,
+      handler: (_, args) => { args.continue = true; }
+    },
+    {
+      aliases: ['--resume'],
+      hasValue: true,
+      handler: (value, args) => { if (value !== undefined) args.sessionId = value; },
+      errorName: '--resume'
+    },
+    {
+      aliases: ['--allowedTools', '--allowed-tools'],
+      hasValue: true,
+      handler: (value, args) => {
+        if (value !== undefined) {
+          args.allowedTools = value.replace(/\s/g, '').split(',').filter(t => t.length > 0);
+        }
+      },
+      errorName: '--allowedTools/--allowed-tools'
+    },
+    {
+      aliases: ['--disallowedTools', '--disallowed-tools'],
+      hasValue: true,
+      handler: (value, args) => {
+        if (value !== undefined) {
+          args.disallowedTools = value.replace(/\s/g, '').split(',').filter(t => t.length > 0);
+        }
+      },
+      errorName: '--disallowedTools/--disallowed-tools'
+    },
+    {
+      aliases: ['--permission-mode', '--permissionMode'],
+      hasValue: true,
+      handler: (value, args) => {
+        if (value !== undefined && ValidationUtils.validatePermissionMode(value)) {
+          args.permissionMode = value as 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
+        }
+      },
+      errorName: '--permission-mode/--permissionMode'
+    },
+    {
+      aliases: ['--settingsFile', '--settings-file', '-s'],
+      hasValue: true,
+      handler: (value, args) => { if (value !== undefined) args.settingsFile = value; },
+      errorName: '--settingsFile/--settings-file/-s'
+    },
+    {
+      aliases: ['-o', '--output'],
+      hasValue: false,
+      handler: (_, args) => { args.outputEnabled = true; }
+    },
+    {
+      aliases: ['--output-file', '--outputFile'],
+      hasValue: true,
+      handler: (value, args) => { if (value !== undefined) args.outputFile = value; },
+      errorName: '--output-file/--outputFile'
+    },
+    {
+      aliases: ['--output-dir', '--outputDir'],
+      hasValue: true,
+      handler: (value, args) => { if (value !== undefined) args.outputDir = value; },
+      errorName: '--output-dir/--outputDir'
+    },
+    {
+      aliases: ['--output-format', '--outputFormat'],
+      hasValue: true,
+      handler: (value, args) => {
+        if (value !== undefined && (value === 'json' || value === 'text')) {
+          args.outputFormat = value;
+        }
+      },
+      validator: (value) => value === 'json' || value === 'text',
+      errorName: '--output-format/--outputFormat'
+    },
+    {
+      aliases: ['--output-enabled', '--outputEnabled'],
+      hasValue: false,
+      handler: (_, args) => { args.outputEnabled = true; }
+    },
+    {
+      aliases: ['-h', '--help'],
+      hasValue: false,
+      handler: (_, args) => { args.help = true; }
+    },
+    {
+      aliases: ['--custom-system-prompt', '--customSystemPrompt', '-csp', '--system-prompt', '-sp'],
+      hasValue: true,
+      handler: (value, args) => { if (value !== undefined) args.customSystemPrompt = value; },
+      errorName: '--custom-system-prompt/--customSystemPrompt/-csp/--system-prompt/-sp'
+    },
+    {
+      aliases: ['--system-prompt-file', '--systemPromptFile', '-sp-f'],
+      hasValue: true,
+      handler: (value, args) => { if (value !== undefined) args.systemPromptFile = value; },
+      errorName: '--system-prompt-file/--systemPromptFile/-sp-f'
+    }
+  ];
+
   private static consumeNextArg(
     argv: string[],
     currentIndex: number,
@@ -43,71 +175,28 @@ export class ArgumentParser {
     let consumed = new Set<number>();
 
     for (let i = 0; i < argv.length; i++) {
+      if (consumed.has(i)) continue;
+      
       const arg = argv[i];
-
-      if (arg === '-i' || arg === '--input') {
-        args.prompt = this.consumeNextArg(argv, i, '-i/--input', consumed);
-        i++;
-      } else if (arg === '-f' || arg === '--file') {
-        args.inputFile = this.consumeNextArg(argv, i, '-f/--file', consumed);
-        i++;
-      } else if (arg === '--max-turns' || arg === '--maxTurns') {
-        const nextArg = this.consumeNextArg(argv, i, '--max-turns/--maxTurns', consumed);
-        const maxTurns = parseInt(nextArg, 10);
-        if (!isNaN(maxTurns)) {
-          args.maxTurns = maxTurns;
+      if (!arg) continue;
+      
+      const definition = this.ARG_DEFINITIONS.find(def => 
+        def.aliases.includes(arg)
+      );
+      
+      if (definition) {
+        if (definition.hasValue) {
+          const errorName = definition.errorName || arg;
+          const value = this.consumeNextArg(argv, i, errorName, consumed);
+          // Only process if validation passes (or no validator exists)
+          if (!definition.validator || definition.validator(value)) {
+            definition.handler(value, args);
+          }
+          i++; // Skip next argument as it's the value
+        } else {
+          definition.handler(undefined, args);
+          consumed.add(i);
         }
-        i++;
-      } else if (arg === '-c' || arg === '--continue') {
-        args.continue = true;
-        consumed.add(i);
-      } else if (arg === '--resume') {
-        args.sessionId = this.consumeNextArg(argv, i, '--resume', consumed);
-        i++;
-      } else if (arg === '--allowedTools' || arg === '--allowed-tools') {
-        const tools = this.consumeNextArg(argv, i, '--allowedTools/--allowed-tools', consumed);
-        args.allowedTools = tools.replace(/\s/g, '').split(',').filter(t => t.length > 0);
-        i++;
-      } else if (arg === '--disallowedTools' || arg === '--disallowed-tools') {
-        const tools = this.consumeNextArg(argv, i, '--disallowedTools/--disallowed-tools', consumed);
-        args.disallowedTools = tools.replace(/\s/g, '').split(',').filter(t => t.length > 0);
-        i++;
-      } else if (arg === '--permission-mode' || arg === '--permissionMode') {
-        const nextArg = this.consumeNextArg(argv, i, '--permission-mode/--permissionMode', consumed);
-        if (ValidationUtils.validatePermissionMode(nextArg)) {
-          args.permissionMode = nextArg as 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
-        }
-        i++;
-      } else if (arg === '--settingsFile' || arg === '--settings-file' || arg === '-s') {
-        args.settingsFile = this.consumeNextArg(argv, i, '--settingsFile/--settings-file/-s', consumed);
-        i++;
-      } else if (arg === '-o' || arg === '--output') {
-        args.outputEnabled = true;
-        consumed.add(i);
-      } else if (arg === '--output-file' || arg === '--outputFile') {
-        args.outputFile = this.consumeNextArg(argv, i, '--output-file/--outputFile', consumed);
-        i++;
-      } else if (arg === '--output-dir' || arg === '--outputDir') {
-        args.outputDir = this.consumeNextArg(argv, i, '--output-dir/--outputDir', consumed);
-        i++;
-      } else if (arg === '--output-format' || arg === '--outputFormat') {
-        const nextArg = this.consumeNextArg(argv, i, '--output-format/--outputFormat', consumed);
-        if (nextArg === 'json' || nextArg === 'text') {
-          args.outputFormat = nextArg;
-        }
-        i++;
-      } else if (arg === '--output-enabled' || arg === '--outputEnabled') {
-        args.outputEnabled = true;
-        consumed.add(i);
-      } else if (arg === '-h' || arg === '--help') {
-        args.help = true;
-        consumed.add(i);
-      } else if (arg === '--custom-system-prompt' || arg === '--customSystemPrompt' || arg === '-csp' || arg === '--system-prompt' || arg === '-sp') {
-        args.customSystemPrompt = this.consumeNextArg(argv, i, '--custom-system-prompt/--customSystemPrompt/-csp/--system-prompt/-sp', consumed);
-        i++;
-      } else if (arg === '--system-prompt-file' || arg === '--systemPromptFile' || arg === '-sp-f') {
-        args.systemPromptFile = this.consumeNextArg(argv, i, '--system-prompt-file/--systemPromptFile/-sp-f', consumed);
-        i++;
       }
     }
 
