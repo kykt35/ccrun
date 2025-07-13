@@ -152,30 +152,12 @@ export class ArgumentParser {
     }
   ];
 
-  private static consumeNextArg(
-    argv: string[],
-    currentIndex: number,
-    optionName: string,
-    consumed: Set<number>
-  ): string {
-    if (currentIndex + 1 >= argv.length) {
-      throw new Error(`Option ${optionName} requires a value`);
-    }
-    const nextArg = argv[currentIndex + 1];
-    if (nextArg === undefined || nextArg.startsWith('-')) {
-      throw new Error(`Option ${optionName} requires a value`);
-    }
-    consumed.add(currentIndex);
-    consumed.add(currentIndex + 1);
-    return nextArg;
-  }
-
   static parseArgs(argv: string[] = process.argv.slice(2)): CLIArgs {
     const args: CLIArgs = {};
-    let consumed = new Set<number>();
+    const processedIndices = new Set<number>();
 
     for (let i = 0; i < argv.length; i++) {
-      if (consumed.has(i)) continue;
+      if (processedIndices.has(i)) continue;
       
       const arg = argv[i];
       if (!arg) continue;
@@ -185,25 +167,38 @@ export class ArgumentParser {
       );
       
       if (definition) {
+        processedIndices.add(i);
+        
         if (definition.hasValue) {
           const errorName = definition.errorName || arg;
-          const value = this.consumeNextArg(argv, i, errorName, consumed);
-          // Only process if validation passes (or no validator exists)
-          if (!definition.validator || definition.validator(value)) {
-            definition.handler(value, args);
+          
+          // Check if next argument exists and is valid
+          if (i + 1 >= argv.length) {
+            throw new Error(`Option ${errorName} requires a value`);
           }
+          
+          const nextArg = argv[i + 1];
+          if (nextArg === undefined || nextArg.startsWith('-')) {
+            throw new Error(`Option ${errorName} requires a value`);
+          }
+          
+          // Only process if validation passes (or no validator exists)
+          if (!definition.validator || definition.validator(nextArg)) {
+            definition.handler(nextArg, args);
+          }
+          
+          processedIndices.add(i + 1);
           i++; // Skip next argument as it's the value
         } else {
           definition.handler(undefined, args);
-          consumed.add(i);
         }
       }
     }
 
-    // If neither -i nor -f is specified, treat the first unconsumed argument as prompt
+    // If neither -i nor -f is specified, treat the first unprocessed argument as prompt
     if (!args.prompt && !args.inputFile && !args.help) {
       for (let i = 0; i < argv.length; i++) {
-        if (!consumed.has(i)) {
+        if (!processedIndices.has(i)) {
           const unconsumedArg = argv[i];
           if (unconsumedArg !== undefined) {
             args.prompt = unconsumedArg;
