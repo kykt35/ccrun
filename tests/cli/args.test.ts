@@ -76,6 +76,21 @@ describe('ArgumentParser', () => {
       expect(args.allowedTools).toEqual(['Read', 'Write', 'Edit']);
     });
 
+    it('should throw error for invalid allowed tools', () => {
+      expect(() => ArgumentParser.parseArgs(['-i', 'test', '--allowedTools', 'InvalidTool,Read']))
+        .toThrow('Invalid value for --allowedTools/--allowed-tools: "InvalidTool,Read". Expected comma-separated list of valid tool names (e.g., "Read,Write,Bash")');
+    });
+
+    it('should throw error for invalid disallowed tools', () => {
+      expect(() => ArgumentParser.parseArgs(['-i', 'test', '--disallowedTools', 'UnknownTool']))
+        .toThrow('Invalid value for --disallowedTools/--disallowed-tools: "UnknownTool". Expected comma-separated list of valid tool names (e.g., "Read,Write,Bash")');
+    });
+
+    it('should throw error for invalid session ID format', () => {
+      expect(() => ArgumentParser.parseArgs(['--resume', 'invalid session id!', '-i', 'test']))
+        .toThrow('Invalid value for --resume: "invalid session id!". Expected a valid session ID (alphanumeric, underscore, hyphen, max 100 chars)');
+    });
+
     it('should treat first unconsumed argument as prompt', () => {
       const args = ArgumentParser.parseArgs(['hello world', '--max-turns', '5']);
       
@@ -99,10 +114,9 @@ describe('ArgumentParser', () => {
       expect(args.permissionMode).toBe('acceptEdits');
     });
 
-    it('should handle invalid max turns gracefully', () => {
-      const args = ArgumentParser.parseArgs(['-i', 'test', '--max-turns', 'invalid']);
-      
-      expect(args.maxTurns).toBeUndefined();
+    it('should throw error for invalid max turns', () => {
+      expect(() => ArgumentParser.parseArgs(['-i', 'test', '--max-turns', 'invalid']))
+        .toThrow('Invalid value for --max-turns/--maxTurns: "invalid". Expected a positive integer');
     });
 
     it('should handle empty tool lists', () => {
@@ -132,10 +146,9 @@ describe('ArgumentParser', () => {
       });
     });
 
-    it('should ignore invalid permission modes', () => {
-      const args = ArgumentParser.parseArgs(['-i', 'test', '--permission-mode', 'invalid']);
-      
-      expect(args.permissionMode).toBeUndefined();
+    it('should throw error for invalid permission modes', () => {
+      expect(() => ArgumentParser.parseArgs(['-i', 'test', '--permission-mode', 'invalid']))
+        .toThrow('Invalid value for --permission-mode/--permissionMode: "invalid". Expected "default", "acceptEdits", "bypassPermissions", or "plan"');
     });
 
     it('should parse settings file with --settingsFile flag (camelCase)', () => {
@@ -226,10 +239,9 @@ describe('ArgumentParser', () => {
       expect(args.outputFormat).toBe('text');
     });
 
-    it('should ignore invalid output format', () => {
-      const args = ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'invalid']);
-      
-      expect(args.outputFormat).toBeUndefined();
+    it('should throw error for invalid output format', () => {
+      expect(() => ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'invalid']))
+        .toThrow('Invalid value for --output-format/--outputFormat: "invalid". Expected "json" or "text"');
     });
 
     it('should parse --output flag without file path as auto-output', () => {
@@ -890,19 +902,19 @@ describe('ArgumentParser', () => {
     });
 
     describe('should validate option values when provided after boundary check', () => {
-      it('should still validate invalid permission modes after boundary check passes', () => {
-        const args = ArgumentParser.parseArgs(['-i', 'test', '--permission-mode', 'invalid']);
-        expect(args.permissionMode).toBeUndefined(); // Invalid modes are ignored
+      it('should throw error for invalid permission modes after boundary check passes', () => {
+        expect(() => ArgumentParser.parseArgs(['-i', 'test', '--permission-mode', 'invalid']))
+          .toThrow('Invalid value for --permission-mode/--permissionMode: "invalid". Expected "default", "acceptEdits", "bypassPermissions", or "plan"');
       });
 
-      it('should still validate invalid output formats after boundary check passes', () => {
-        const args = ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'invalid']);
-        expect(args.outputFormat).toBeUndefined(); // Invalid formats are ignored
+      it('should throw error for invalid output formats after boundary check passes', () => {
+        expect(() => ArgumentParser.parseArgs(['-i', 'test', '--output-format', 'invalid']))
+          .toThrow('Invalid value for --output-format/--outputFormat: "invalid". Expected "json" or "text"');
       });
 
-      it('should still validate invalid max turns after boundary check passes', () => {
-        const args = ArgumentParser.parseArgs(['-i', 'test', '--max-turns', 'not-a-number']);
-        expect(args.maxTurns).toBeUndefined(); // Invalid numbers are ignored
+      it('should throw error for invalid max turns after boundary check passes', () => {
+        expect(() => ArgumentParser.parseArgs(['-i', 'test', '--max-turns', 'not-a-number']))
+          .toThrow('Invalid value for --max-turns/--maxTurns: "not-a-number". Expected a positive integer');
       });
 
       it('should process valid values correctly after boundary check passes', () => {
