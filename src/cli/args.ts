@@ -15,7 +15,8 @@ export interface CLIArgs {
   outputDir?: string;
   outputFormat?: 'json' | 'text';
   outputEnabled?: boolean;
-  customSystemPrompt?: string;
+  customSystemPrompt?: string; // @deprecated Use systemPrompt instead
+  systemPromptFile?: string;
 }
 
 export class ArgumentParser {
@@ -101,8 +102,11 @@ export class ArgumentParser {
       } else if (arg === '-h' || arg === '--help') {
         args.help = true;
         consumed.add(i);
-      } else if (arg === '--custom-system-prompt' || arg === '--customSystemPrompt' || arg === '-csp') {
-        args.customSystemPrompt = this.consumeNextArg(argv, i, '--custom-system-prompt/--customSystemPrompt/-csp', consumed);
+      } else if (arg === '--custom-system-prompt' || arg === '--customSystemPrompt' || arg === '-csp' || arg === '--system-prompt' || arg === '-sp') {
+        args.customSystemPrompt = this.consumeNextArg(argv, i, '--custom-system-prompt/--customSystemPrompt/-csp/--system-prompt/-sp', consumed);
+        i++;
+      } else if (arg === '--system-prompt-file' || arg === '--systemPromptFile' || arg === '-sp-f') {
+        args.systemPromptFile = this.consumeNextArg(argv, i, '--system-prompt-file/--systemPromptFile/-sp-f', consumed);
         i++;
       }
     }
@@ -175,6 +179,11 @@ export class ArgumentParser {
       return false;
     }
 
+    // Validate systemPromptFile if provided
+    if (args.systemPromptFile !== undefined && (typeof args.systemPromptFile !== 'string' || args.systemPromptFile.trim().length === 0)) {
+      return false;
+    }
+
     return true;
   }
 
@@ -217,6 +226,10 @@ export class ArgumentParser {
 
     if (args.customSystemPrompt !== undefined && (typeof args.customSystemPrompt !== 'string' || args.customSystemPrompt.trim().length === 0)) {
       return 'Custom system prompt must be a non-empty string';
+    }
+
+    if (args.systemPromptFile !== undefined && (typeof args.systemPromptFile !== 'string' || args.systemPromptFile.trim().length === 0)) {
+      return 'System prompt file path must be a non-empty string';
     }
 
     return null;

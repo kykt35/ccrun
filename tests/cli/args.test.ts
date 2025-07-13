@@ -305,6 +305,36 @@ describe('ArgumentParser', () => {
       expect(args.customSystemPrompt).toBe('Focus on security');
     });
 
+    it('should parse system prompt with --system-prompt flag (kebab-case)', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--system-prompt', 'You are an expert']);
+      
+      expect(args.customSystemPrompt).toBe('You are an expert');
+    });
+
+    it('should parse system prompt with -sp flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '-sp', 'Focus on performance']);
+      
+      expect(args.customSystemPrompt).toBe('Focus on performance');
+    });
+
+    it('should parse system prompt file with --system-prompt-file flag (kebab-case)', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--system-prompt-file', './prompts/expert.txt']);
+      
+      expect(args.systemPromptFile).toBe('./prompts/expert.txt');
+    });
+
+    it('should parse system prompt file with --systemPromptFile flag (camelCase)', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '--systemPromptFile', './prompts/expert.txt']);
+      
+      expect(args.systemPromptFile).toBe('./prompts/expert.txt');
+    });
+
+    it('should parse system prompt file with -sp-f flag', () => {
+      const args = ArgumentParser.parseArgs(['-i', 'test', '-sp-f', './prompts/security.txt']);
+      
+      expect(args.systemPromptFile).toBe('./prompts/security.txt');
+    });
+
     it('should parse mixed camelCase and kebab-case options', () => {
       const args = ArgumentParser.parseArgs([
         '-i', 'test prompt',
@@ -520,6 +550,24 @@ describe('ArgumentParser', () => {
       
       expect(ArgumentParser.validateArgs(args)).toBe(false);
     });
+
+    it('should validate args with system prompt file', () => {
+      const args: CLIArgs = { prompt: 'test', systemPromptFile: './prompts/expert.txt' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(true);
+    });
+
+    it('should reject empty system prompt file path', () => {
+      const args: CLIArgs = { prompt: 'test', systemPromptFile: '' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
+
+    it('should reject whitespace-only system prompt file path', () => {
+      const args: CLIArgs = { prompt: 'test', systemPromptFile: '   ' };
+      
+      expect(ArgumentParser.validateArgs(args)).toBe(false);
+    });
   });
 
   describe('getValidationError', () => {
@@ -640,6 +688,26 @@ describe('ArgumentParser', () => {
       const error = ArgumentParser.getValidationError(args);
       expect(error).toBe('Custom system prompt must be a non-empty string');
     });
+
+    it('should return null for valid system prompt file', () => {
+      const args: CLIArgs = { prompt: 'test', systemPromptFile: './prompts/expert.txt' };
+      
+      expect(ArgumentParser.getValidationError(args)).toBeNull();
+    });
+
+    it('should return error for empty system prompt file path', () => {
+      const args: CLIArgs = { prompt: 'test', systemPromptFile: '' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('System prompt file path must be a non-empty string');
+    });
+
+    it('should return error for whitespace-only system prompt file path', () => {
+      const args: CLIArgs = { prompt: 'test', systemPromptFile: '   ' };
+      
+      const error = ArgumentParser.getValidationError(args);
+      expect(error).toBe('System prompt file path must be a non-empty string');
+    });
   });
 
   describe('boundary checks', () => {
@@ -733,15 +801,35 @@ describe('ArgumentParser', () => {
       });
 
       it('should throw error for --custom-system-prompt without value', () => {
-        expect(() => ArgumentParser.parseArgs(['--custom-system-prompt'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp requires a value');
+        expect(() => ArgumentParser.parseArgs(['--custom-system-prompt'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp/--system-prompt/-sp requires a value');
       });
 
       it('should throw error for --customSystemPrompt without value', () => {
-        expect(() => ArgumentParser.parseArgs(['--customSystemPrompt'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp requires a value');
+        expect(() => ArgumentParser.parseArgs(['--customSystemPrompt'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp/--system-prompt/-sp requires a value');
       });
 
       it('should throw error for -csp without value', () => {
-        expect(() => ArgumentParser.parseArgs(['-csp'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp requires a value');
+        expect(() => ArgumentParser.parseArgs(['-csp'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp/--system-prompt/-sp requires a value');
+      });
+
+      it('should throw error for --system-prompt without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--system-prompt'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp/--system-prompt/-sp requires a value');
+      });
+
+      it('should throw error for -sp without value', () => {
+        expect(() => ArgumentParser.parseArgs(['-sp'])).toThrow('Option --custom-system-prompt/--customSystemPrompt/-csp/--system-prompt/-sp requires a value');
+      });
+
+      it('should throw error for --system-prompt-file without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--system-prompt-file'])).toThrow('Option --system-prompt-file/--systemPromptFile/-sp-f requires a value');
+      });
+
+      it('should throw error for --systemPromptFile without value', () => {
+        expect(() => ArgumentParser.parseArgs(['--systemPromptFile'])).toThrow('Option --system-prompt-file/--systemPromptFile/-sp-f requires a value');
+      });
+
+      it('should throw error for -sp-f without value', () => {
+        expect(() => ArgumentParser.parseArgs(['-sp-f'])).toThrow('Option --system-prompt-file/--systemPromptFile/-sp-f requires a value');
       });
     });
 

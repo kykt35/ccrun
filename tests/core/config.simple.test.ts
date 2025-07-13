@@ -340,8 +340,8 @@ describe('ConfigManager', () => {
     });
   });
 
-  describe('Custom System Prompt Support', () => {
-    it('should accept customSystemPrompt in Settings type', () => {
+  describe('System Prompt Support', () => {
+    it('should accept customSystemPrompt in Settings type (deprecated)', () => {
       const settings: Settings = {
         customSystemPrompt: 'You are an expert TypeScript developer',
         maxTurns: 10,
@@ -352,6 +352,20 @@ describe('ConfigManager', () => {
       };
 
       expect(settings.customSystemPrompt).toBe('You are an expert TypeScript developer');
+      expect(settings.maxTurns).toBe(10);
+    });
+
+    it('should accept systemPrompt in Settings type', () => {
+      const settings: Settings = {
+        systemPrompt: 'You are an expert TypeScript developer',
+        maxTurns: 10,
+        permissions: {
+          allow: ['Read', 'Write'],
+          deny: ['Bash']
+        }
+      };
+
+      expect(settings.systemPrompt).toBe('You are an expert TypeScript developer');
       expect(settings.maxTurns).toBe(10);
     });
 
@@ -376,6 +390,68 @@ describe('ConfigManager', () => {
       const result = ConfigManager.validateConfig(config);
 
       expect(result).toBe(true);
+    });
+  });
+
+  describe('normalizeSettings', () => {
+    it('should prioritize systemPrompt over customSystemPrompt', () => {
+      const mockSettings = {
+        systemPrompt: 'New system prompt',
+        customSystemPrompt: 'Old custom prompt',
+        maxTurns: 10
+      };
+
+      // Access the private method through any
+      const normalizedSettings = (ConfigManager as any).normalizeSettings(mockSettings);
+
+      expect(normalizedSettings.customSystemPrompt).toBe('New system prompt');
+      expect(normalizedSettings.systemPrompt).toBe('New system prompt');
+    });
+
+    it('should use customSystemPrompt when systemPrompt is not provided', () => {
+      const mockSettings = {
+        customSystemPrompt: 'Custom prompt',
+        maxTurns: 10
+      };
+
+      const normalizedSettings = (ConfigManager as any).normalizeSettings(mockSettings);
+
+      expect(normalizedSettings.customSystemPrompt).toBe('Custom prompt');
+    });
+
+    it('should preserve other settings during normalization', () => {
+      const mockSettings = {
+        systemPrompt: 'Test prompt',
+        maxTurns: 15,
+        permissions: {
+          allow: ['Read', 'Write'],
+          deny: ['Bash']
+        },
+        outputFormat: 'json' as const
+      };
+
+      const normalizedSettings = (ConfigManager as any).normalizeSettings(mockSettings);
+
+      expect(normalizedSettings.customSystemPrompt).toBe('Test prompt');
+      expect(normalizedSettings.maxTurns).toBe(15);
+      expect(normalizedSettings.permissions).toEqual({
+        allow: ['Read', 'Write'],
+        deny: ['Bash']
+      });
+      expect(normalizedSettings.outputFormat).toBe('json');
+    });
+
+    it('should handle settings without any system prompt', () => {
+      const mockSettings = {
+        maxTurns: 10,
+        outputFormat: 'text' as const
+      };
+
+      const normalizedSettings = (ConfigManager as any).normalizeSettings(mockSettings);
+
+      expect(normalizedSettings.customSystemPrompt).toBeUndefined();
+      expect(normalizedSettings.systemPrompt).toBeUndefined();
+      expect(normalizedSettings.maxTurns).toBe(10);
     });
   });
 });

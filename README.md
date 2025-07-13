@@ -47,7 +47,9 @@ npx ccrun -i "Hello"
 - `--disallowed-tools <tools>`: Specify disallowed tools (comma-separated)
 - `--permission-mode <mode>`: Set permission mode (default|plan|acceptEdits|bypassPermissions)
 - `-s, --settings-file <file>`: Specify settings file
-- `-csp, --custom-system-prompt <prompt>`: Custom system prompt for Claude
+- `--system-prompt, -sp <prompt>`: System prompt for Claude
+- `--system-prompt-file, -sp-f <file>`: Load system prompt from file
+- `-csp, --custom-system-prompt <prompt>`: Custom system prompt for Claude (deprecated)
 - `-o, --output`: Enable output with auto-generated filename
 - `--output-file <file>`: Specify output file path
 - `--output-dir <directory>`: Specify output directory (default: ./tmp/ccrun/results)
@@ -69,20 +71,26 @@ npx ccrun -f prompt.txt
 npx ccrun -h
 ```
 
-#### Custom System Prompts
+#### System Prompts
 
 ```bash
-# Use custom system prompt to define Claude's role
-npx ccrun -i "Review this code" --custom-system-prompt "You are a security expert focused on finding vulnerabilities"
+# Use system prompt to define Claude's role
+npx ccrun -i "Review this code" --system-prompt "You are a security expert focused on finding vulnerabilities"
 
 # Short form for convenience
-npx ccrun -i "Explain this algorithm" -csp "You are a computer science professor teaching algorithms"
+npx ccrun -i "Explain this algorithm" -sp "You are a computer science professor teaching algorithms"
 
-# Custom prompt with specific expertise
-npx ccrun -i "Optimize this function" --custom-system-prompt "You are a TypeScript expert focused on performance optimization"
+# Load system prompt from file
+npx ccrun -i "Optimize this function" --system-prompt-file ./prompts/typescript-expert.txt
+
+# Short form for file loading
+npx ccrun -i "Code review" -sp-f ./prompts/security-reviewer.txt
 
 # Combine with other options
-npx ccrun -f code.txt --custom-system-prompt "You are a senior code reviewer" --max-turns 5
+npx ccrun -f code.txt --system-prompt "You are a senior code reviewer" --max-turns 5
+
+# Legacy syntax (deprecated but still works)
+npx ccrun -i "Legacy example" --custom-system-prompt "You are a TypeScript expert"
 ```
 
 #### Session Management
@@ -171,9 +179,9 @@ npx ccrun -i "Let's have a long discussion" --max-turns 10
 # Combine multiple options
 npx ccrun -f input.txt --continue --max-turns 5 --allowedTools "Read,Write"
 
-# Complex combination with custom system prompt
+# Complex combination with system prompt
 npx ccrun -i "Analyze this codebase" \
-  --custom-system-prompt "You are a senior software architect with expertise in code quality" \
+  --system-prompt "You are a senior software architect with expertise in code quality" \
   --allowedTools "Read,Grep,Glob,LS" \
   --max-turns 15 \
   --output-file analysis.json
@@ -213,7 +221,7 @@ You can create settings in `.ccrun/settings.json` or `.ccrun/settings.local.json
     "deny": ["Edit"]
   },
   "maxTurns": 25,
-  "customSystemPrompt": "You are an expert TypeScript developer with extensive knowledge of modern web frameworks",
+  "systemPrompt": "You are an expert TypeScript developer with extensive knowledge of modern web frameworks",
   "outputFile": "./results/output.json",
   "outputFormat": "json",
   "output": {
@@ -252,7 +260,7 @@ npx ccrun -i "prompt" --settingsFile ./custom-settings.json
     "deny": ["Bash", "WebFetch"]
   },
   "maxTurns": 50,
-  "customSystemPrompt": "You are a security expert focused on code analysis and vulnerability detection",
+  "systemPrompt": "You are a security expert focused on code analysis and vulnerability detection",
   "outputFile": "./project-results/analysis.txt",
   "outputFormat": "text"
 }
@@ -267,7 +275,7 @@ npx ccrun -i "prompt" --settingsFile ./custom-settings.json
     "deny": ["Bash", "WebFetch"]
   },
   "maxTurns": 50,
-  "customSystemPrompt": "You are a senior software architect specializing in performance optimization",
+  "systemPrompt": "You are a senior software architect specializing in performance optimization",
   "outputFormat": "json",
   "output": {
     "enabled": true,
@@ -293,7 +301,7 @@ The project includes an example settings file:
     "deny": ["Bash", "WebFetch", "WebSearch"]
   },
   "maxTurns": 30,
-  "customSystemPrompt": "You are an experienced software engineer with expertise in code analysis and refactoring",
+  "systemPrompt": "You are an experienced software engineer with expertise in code analysis and refactoring",
   "outputFile": "./tmp/output.json",
   "outputFormat": "json",
   "output": {
@@ -397,7 +405,8 @@ Execution result content
 - **permissions.allow**: List of allowed tools
 - **permissions.deny**: List of disallowed tools
 - **maxTurns**: Maximum number of conversation turns
-- **customSystemPrompt**: Custom system prompt to define Claude's role and behavior
+- **systemPrompt**: System prompt to define Claude's role and behavior
+- **customSystemPrompt**: (Deprecated) Legacy system prompt field - use `systemPrompt` instead
 - **outputFile**: Output file path (automatically enables output when set)
 - **outputFormat**: Output format (`json` or `text`)
 - **output.enabled**: Enable/disable file output
@@ -408,10 +417,12 @@ Execution result content
 #### Priority Order
 
 **For All Settings:**
-1. **Highest**: CLI arguments (e.g., `--custom-system-prompt`, `--max-turns`, `--allowedTools`)
-2. **Lower**: Settings file values
+
+1. **Highest**: CLI arguments (e.g., `--system-prompt`, `--max-turns`, `--allowedTools`)
+2. **Lower**: Settings file values (systemPrompt takes priority over customSystemPrompt)
 
 **For Output Settings:**
+
 1. **Highest**: CLI arguments (`--output-file`, `-o`, `--output`, `--output-enabled`)
 2. **Next**: `outputFile` in settings file
 3. **Then**: `output.enabled: true` in settings file (auto-generation)

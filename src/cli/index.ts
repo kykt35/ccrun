@@ -5,6 +5,7 @@ import { CCRunService } from '../core';
 import { CCRunConfig, CCRunResult, SDKResultMessage } from '../core/types';
 import { ConfigManager } from '../core/config';
 import { FileOutputManager } from '../utils/file-output';
+import { FileManager } from '../utils/file';
 
 export class CLIManager {
   private ccrunService: CCRunService;
@@ -43,6 +44,16 @@ export class CLIManager {
       // Override customSystemPrompt from settings if not provided via CLI
       if (!args.customSystemPrompt && settings?.customSystemPrompt) {
         args.customSystemPrompt = settings.customSystemPrompt;
+      }
+
+      // Load system prompt from file if specified (customSystemPrompt takes priority)
+      if (!args.customSystemPrompt && args.systemPromptFile) {
+        try {
+          args.customSystemPrompt = await FileManager.readFile(args.systemPromptFile);
+        } catch (error) {
+          console.error(DisplayManager.formatError(new Error(`Failed to load system prompt from file: ${error instanceof Error ? error.message : 'Unknown error'}`)));
+          process.exit(1);
+        }
       }
 
       // Process output settings

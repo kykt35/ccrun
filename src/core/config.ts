@@ -10,6 +10,17 @@ export class ConfigManager {
     ".ccrun/settings.json"
   ];
 
+  private static normalizeSettings(settings: any): Settings {
+    // Prefer systemPrompt over customSystemPrompt (customSystemPrompt will be deprecated)
+    if (settings.systemPrompt) {
+      settings.customSystemPrompt = settings.systemPrompt;
+    } else if (settings.customSystemPrompt) {
+      // Keep existing customSystemPrompt for backward compatibility
+      settings.customSystemPrompt = settings.customSystemPrompt;
+    }
+    return settings;
+  }
+
   static async loadSettings(customPath?: string): Promise<Settings | null> {
     const baseDir = process.cwd();
 
@@ -21,7 +32,7 @@ export class ConfigManager {
           const content = await readFile(absPath, 'utf-8');
           const settings = JSON.parse(content);
           console.log(`${customPath} was loaded`);
-          return settings;
+          return this.normalizeSettings(settings);
         } catch (error) {
           console.error(`${customPath} failed to load or parse: ${(error as Error).message}`);
           process.exit(1);
@@ -40,7 +51,7 @@ export class ConfigManager {
           const content = await readFile(absPath, 'utf-8');
           const settings = JSON.parse(content);
           console.log(`${relPath} was loaded`);
-          return settings;
+          return this.normalizeSettings(settings);
         } catch (error) {
           console.error(`${relPath} failed to load or parse: ${(error as Error).message}`);
           process.exit(1);
