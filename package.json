@@ -1,6 +1,6 @@
 {
   "name": "ccrun",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A tool to make Claude's one shot mode more user-friendly",
   "main": "src/index.ts",
   "bin": {
