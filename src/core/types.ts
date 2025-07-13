@@ -32,7 +32,8 @@ export interface Settings {
       suffix?: string;
     };
   };
-  customSystemPrompt?: string;
+  customSystemPrompt?: string; // @deprecated Use systemPrompt instead
+  systemPrompt?: string;
   [key: string]: any;
 }
 

@@ -33,8 +33,11 @@ It supports direct prompts, file input, session continuation, and tool filtering
   --disallowed-tools <tools>  Comma-separated list of disallowed tools
   --permission-mode <mode>    Set permission mode (default|plan|acceptEdits|bypassPermissions)
   -s, --settings-file <file>  Specify custom settings file path
-  --custom-system-prompt <p>  Custom system prompt for Claude
-  -csp <prompt>               Short form of --custom-system-prompt
+  --custom-system-prompt <p>  Custom system prompt for Claude (deprecated)
+  --system-prompt, -sp <p>    System prompt for Claude
+  -csp <prompt>               Short form of --custom-system-prompt (deprecated)
+  --system-prompt-file <file> Load system prompt from file
+  -sp-f <file>                Short form of --system-prompt-file
   -o [file]                   Output file path (with file) or enable auto-output (without file)
   --output-file <file>        Output file path for results (enables output)
   --output-dir <directory>    Output directory for results (default: ./tmp/ccrun/results)
@@ -82,9 +85,13 @@ Available Tools:
   ccrun -i "Analyze the code" --settings-file ./my-settings.json
   ccrun -i "Write tests" -s ../shared-settings.json
 
-  # Custom system prompt
-  ccrun -i "Review this code" --custom-system-prompt "You are a security expert"
-  ccrun -i "Explain this" -csp "Focus on performance optimizations"
+  # System prompt
+  ccrun -i "Review this code" --system-prompt "You are a security expert"
+  ccrun -i "Explain this" -sp "Focus on performance optimizations"
+  ccrun -i "Debug this issue" --system-prompt "You are a debugging expert"
+  ccrun -i "Code review" --system-prompt-file ./prompts/security-prompt.txt
+  ccrun -i "Refactor code" -sp-f ./prompts/refactor-prompt.txt
+  ccrun -i "Legacy example" --custom-system-prompt "Old syntax (deprecated)"
 
   # Multiple options
   ccrun -f requirements.txt --max-turns 10 --allowed-tools "Read,Write,Edit" -o results.json`;
