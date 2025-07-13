@@ -212,63 +212,7 @@ export class ArgumentParser {
   }
 
   static validateArgs(args: CLIArgs): boolean {
-    // Help command is always valid
-    if (args.help) {
-      return true;
-    }
-
-    // Must have either prompt or input file
-    if (!args.prompt && !args.inputFile) {
-      return false;
-    }
-
-    // Validate maxTurns if provided
-    if (args.maxTurns !== undefined && (args.maxTurns <= 0 || args.maxTurns > 100)) {
-      return false;
-    }
-
-    // Validate sessionId if provided
-    if (args.sessionId !== undefined && (typeof args.sessionId !== 'string' || args.sessionId.trim().length === 0)) {
-      return false;
-    }
-
-    // Validate settingsFile if provided
-    if (args.settingsFile !== undefined && (typeof args.settingsFile !== 'string' || args.settingsFile.trim().length === 0)) {
-      return false;
-    }
-
-    // Cannot use both continue and resume
-    if (args.continue && args.sessionId) {
-      return false;
-    }
-
-    // Validate output format if provided
-    if (args.outputFormat !== undefined && args.outputFormat !== 'json' && args.outputFormat !== 'text') {
-      return false;
-    }
-
-    // Validate output-related arguments
-    if (args.outputFile !== undefined && (typeof args.outputFile !== 'string' || args.outputFile.trim().length === 0)) {
-      return false;
-    }
-
-    if (args.outputDir !== undefined && (typeof args.outputDir !== 'string' || args.outputDir.trim().length === 0)) {
-      return false;
-    }
-
-    // No conflicting options to check for output
-
-    // Validate customSystemPrompt if provided
-    if (args.customSystemPrompt !== undefined && (typeof args.customSystemPrompt !== 'string' || args.customSystemPrompt.trim().length === 0)) {
-      return false;
-    }
-
-    // Validate systemPromptFile if provided
-    if (args.systemPromptFile !== undefined && (typeof args.systemPromptFile !== 'string' || args.systemPromptFile.trim().length === 0)) {
-      return false;
-    }
-
-    return true;
+    return this.getValidationError(args) === null;
   }
 
   static getValidationError(args: CLIArgs): string | null {
