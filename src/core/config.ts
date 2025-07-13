@@ -120,7 +120,7 @@ export class ConfigManager {
     outputFormat: 'json' | 'text';
   } {
     // Determine output format (CLI takes precedence over settings root level)
-    const outputFormat = cliOutputFormat || settings?.outputFormat || 'json';
+    const outputFormat = cliOutputFormat || settings?.outputFormat || 'text';
 
     // Output is disabled by default. Only enable if:
     // 1. --output flag is provided (with file path)

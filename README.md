@@ -53,7 +53,7 @@ npx ccrun -i "Hello"
 - `-o, --output`: Enable output with auto-generated filename
 - `--output-file <file>`: Specify output file path
 - `--output-dir <directory>`: Specify output directory (default: ./tmp/ccrun/results)
-- `--output-format <format>`: Output format (json|text, default: json)
+- `--output-format <format>`: Output format (json|text, default: text)
 - `--output-enabled`: Enable output (same as --output)
 
 ### Examples
@@ -145,29 +145,29 @@ npx ccrun -i "Analyze the project" -s ../shared-settings.json
 Save execution results to file. **Output is disabled by default** and must be explicitly enabled.
 
 ```bash
-# Enable output (auto-generated filename: ./tmp/ccrun/results/yyyyMMddHHmmss.json)
+# Enable output (auto-generated filename: ./tmp/ccrun/results/yyyyMMddHHmmss.text)
 npx ccrun -i "Analyze the code" --output
 
 # Short form works too
 npx ccrun -i "Analyze the code" -o
 
 # Save to specific file
-npx ccrun -i "Analyze the code" --output-file results.json
+npx ccrun -i "Analyze the code" --output-file results.txt
 
 # Explicit output file specification
-npx ccrun -i "Analyze the code" --output-file results.json
+npx ccrun -i "Analyze the code" --output-file results.txt
 
 # Save to custom directory
 npx ccrun -i "Analyze the code" --output --output-dir ./output
 
-# Save in text format
-npx ccrun -i "Fix the bug" -o results.txt --output-format text
+# Save in JSON format
+npx ccrun -i "Fix the bug" -o results.json --output-format json
 
 # Disable output (default behavior, console output only)
 npx ccrun -i "Analyze the code"
 
 # Combine multiple options
-npx ccrun -f input.txt --output --output-dir ./results --output-format json
+npx ccrun -f input.txt --output --output-dir ./results --output-format text
 ```
 
 #### Other Options
@@ -222,8 +222,8 @@ You can create settings in `.ccrun/settings.json` or `.ccrun/settings.local.json
   },
   "maxTurns": 25,
   "systemPrompt": "You are an expert TypeScript developer with extensive knowledge of modern web frameworks",
-  "outputFile": "./results/output.json",
-  "outputFormat": "json",
+  "outputFile": "./results/output.txt",
+  "outputFormat": "text",
   "output": {
     "enabled": true,
     "directory": "./results",
@@ -276,7 +276,7 @@ npx ccrun -i "prompt" --settingsFile ./custom-settings.json
   },
   "maxTurns": 50,
   "systemPrompt": "You are a senior software architect specializing in performance optimization",
-  "outputFormat": "json",
+  "outputFormat": "text",
   "output": {
     "enabled": true,
     "directory": "./project-results",
@@ -302,8 +302,8 @@ The project includes an example settings file:
   },
   "maxTurns": 30,
   "systemPrompt": "You are an experienced software engineer with expertise in code analysis and refactoring",
-  "outputFile": "./tmp/output.json",
-  "outputFormat": "json",
+  "outputFile": "./tmp/output.txt",
+  "outputFormat": "text",
   "output": {
     "enabled": true,
     "directory": "./tmp/test",
@@ -337,7 +337,30 @@ You can output execution results to files.
 
 ccrun supports two output formats:
 
-#### JSON Format (Default)
+#### Text Format (Default)
+
+Human-readable report format.
+
+```text
+--- Execution Summary ---
+Session ID     : session-abc123
+Status         : Success (success)
+Timestamp      : 2025-07-09 12:34:56
+Execution Time : 2,500ms
+API Time       : 2,100ms
+Turn Count     : 3
+Estimated Cost : $0.0042
+
+--- Token Usage ---
+Input Tokens   : 1,250
+Output Tokens  : 380
+Total Tokens   : 1,630
+
+--- Result ---
+Execution result content
+```
+
+#### JSON Format
 Structured data format compliant with Claude Code SDK's standard format (SDKResultMessage).
 
 ```json
@@ -366,36 +389,6 @@ Structured data format compliant with Claude Code SDK's standard format (SDKResu
     }
   }
 }
-```
-
-#### Text Format
-
-Human-readable report format.
-
-```text
-==========================================
-CCRun Execution Result Report
-==========================================
-
-Execution Time: 2025-07-09 12:34:56
-Session ID: session-abc123
-Status: Success (success)
-
-Performance Information:
-  Execution Time: 2500ms
-  API Time: 2100ms
-  Number of Turns: 3
-  Estimated Cost: $0.0042
-
-Token Usage:
-  Input Tokens: 1250
-  Output Tokens: 380
-  Total Tokens: 1630
-
-Result:
-Execution result content
-
-==========================================
 ```
 
 ### Output Settings
@@ -434,8 +427,8 @@ Execution result content
 
 - **Output Enabled**: Disabled by default (must be explicitly enabled)
 - **Output Location**: `./tmp/ccrun/results/`
-- **Filename**: `yyyyMMddHHmmss.json` format (execution start time)
-- **Output Format**: JSON
+- **Filename**: `yyyyMMddHHmmss.text` format (execution start time)
+- **Output Format**: Text
 - **Directory Creation**: Automatically creates output directory if it doesn't exist
 
 ---
